@@ -118,8 +118,9 @@ public abstract class TaskBase : MonoBehaviour
 
         uiManager.ShowAOIs(false);
 
-        bool correct = eyeTracker.GetCorrectAOIPercentage() >= 0.5f;
-        uiManager.ShowFeedback(correct ? "Correto!" : "Incorreto.", correct);
+        float pct    = eyeTracker.GetCorrectAOIPercentage();
+        bool correct = pct >= 0.5f;
+        uiManager.ShowFeedback($"{pct * 100f:F0}% do tempo na resposta correta", correct);
         yield return new WaitForSeconds(1.5f);
         uiManager.HideFeedback();
     }

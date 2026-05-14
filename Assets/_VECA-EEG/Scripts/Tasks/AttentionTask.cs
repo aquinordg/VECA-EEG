@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -10,7 +11,7 @@ using UnityEngine;
 ///   OpcaoSprites      → 4 sprites (ex: Leão, Vaca, Porco, Galinha)
 ///   SpriteCorreto     → sprite da resposta correta (ex: Leão)
 ///   Instrucao         → texto exibido durante o trial
-///   executionTime     → 5 s (padrão artigo)
+///   executionTime     → 8 s
 ///
 /// CONFIGURAÇÃO NO INSPECTOR (modo texto — fallback):
 ///   Opcoes            → 4 rótulos
@@ -21,7 +22,7 @@ public class AttentionTask : TaskBase
     [Header("Conteúdo")]
     [Tooltip("Instrução exibida durante o trial")]
     [TextArea(2, 4)]
-    public string instrucao = "\n\n\nOlhe para o animal selvagem.";
+    public string instrucao = "\n\n\nOlhe para o ANIMAL SELVAGEM.";
 
     [Header("Modo Imagem (prioridade)")]
     [Tooltip("4 sprites exibidos nos botões")]
@@ -41,13 +42,30 @@ public class AttentionTask : TaskBase
     {
         base.Awake();
         taskName                        = "ATENÇÃO";
-        executionTime                   = 5f;
+        executionTime                   = 8f;
         showInstructionDuringExecution  = true;
         if (string.IsNullOrWhiteSpace(taskDescription))
             taskDescription =
-                "TAREFA: ATENÇÃO\n\n" +
-                "Uma instrução será exibida.\n\n" +
-                "Entre as 4 opções na tela, fixe o olhar no item correto.";
+                "<b>TAREFA:</b> ATENÇÃO\n\n" +
+                "Uma instrução será exibida na tela.\n" +
+                "Leia com atenção e fixe o olhar no item correto entre\n" +
+                "as 4 opções apresentadas.\n\n" +
+                "<b>Exemplo:</b> se a instrução diz \"Olhe para o brinquedo\",\n" +
+                "olhe para a imagem do brinquedo.\n\n" +
+                "Esta tarefa tem 1 rodada.";
+    }
+
+    protected override IEnumerator PreparationPhase()
+    {
+        uiManager.ShowInstruction(instrucao);
+        float elapsed = 0f;
+        while (elapsed < preparationTime)
+        {
+            elapsed += Time.deltaTime;
+            uiManager.UpdateTimer(preparationTime - elapsed);
+            yield return null;
+        }
+        // Instrução permanece visível quando as AOIs aparecem
     }
 
     protected override void SetupTrial()

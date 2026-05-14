@@ -64,9 +64,12 @@ public class AbstractionTask : TaskBase
         scores        = new float[trials.Length];
         if (string.IsNullOrWhiteSpace(taskDescription))
             taskDescription =
-                "TAREFA: ABSTRAÇÃO\n\n" +
-                "Dois conceitos serão exibidos na instrução.\n\n" +
-                "Entre as 4 opções na tela, fixe o olhar na categoria que melhor descreve o que eles têm em comum.";
+                "<b>TAREFA:</b> ABSTRAÇÃO\n\n" +
+                "Dois conceitos serão exibidos na instrução.\n" +
+                "Entre as 4 opções, fixe o olhar na categoria que melhor\n" +
+                "descreve o que eles têm em comum.\n\n" +
+                "<b>Exemplo:</b> \"Casa e Ponte\" → olhe para \"Construções\".\n\n" +
+                "Esta tarefa tem 2 rodadas.";
     }
 
     // ── API para TestManager ─────────────────────────────────────────────────
@@ -98,7 +101,7 @@ public class AbstractionTask : TaskBase
     private IEnumerator ExecutarUmTrial(int idx)
     {
         var trial = trials[idx];
-        uiManager.SetTaskStatus($"Abstração ({idx + 1}/{trials.Length})");
+        uiManager.SetTaskStatus($"ABSTRAÇÃO ({idx + 1}/{trials.Length})");
 
         // Instrução com o par durante a preparação
         string textoInstrucao = $"<b>{trial.par}</b>\n{complementoInstrucao}";
@@ -131,7 +134,7 @@ public class AbstractionTask : TaskBase
         uiManager.ShowAOIs(false);
 
         bool correct = scores[idx] >= 0.5f;
-        uiManager.ShowFeedback(correct ? "Correto!" : "Incorreto.", correct);
+        uiManager.ShowFeedback($"{scores[idx] * 100f:F0}% do tempo na resposta correta", correct);
         yield return new WaitForSeconds(1.5f);
         uiManager.HideFeedback();
     }

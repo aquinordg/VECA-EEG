@@ -50,7 +50,7 @@ public class MemoryTask : TaskBase
     [Tooltip("Duração da exibição do alvo na fase de encoding (s)")]
     public float encodingTime = 4f;
     [Tooltip("Intervalo entre encoding e recall — tela em branco (s)")]
-    public float storageDelay = 5f;
+    public float storageDelay = 3f;
     [Tooltip("Pausa entre trials (s)")]
     public float pausaEntreTrials = 0.8f;
 
@@ -73,9 +73,13 @@ public class MemoryTask : TaskBase
         executionTime = 8f;
         if (string.IsNullOrWhiteSpace(taskDescription))
             taskDescription =
-                "TAREFA: MEMÓRIA\n\n" +
-                "Você verá 3 imagens, uma de cada vez.\n\n" +
-                "Memorize cada imagem. Depois de um intervalo, ela aparecerá entre 4 opções — fixe o olhar na imagem que foi apresentada.";
+                "<b>TAREFA:</b> MEMÓRIA\n\n" +
+                "Você verá 3 imagens, uma de cada vez, por alguns segundos.\n" +
+                "Após um breve intervalo, a mesma imagem aparecerá misturada\n" +
+                "com outras 3 opções — fixe o olhar nela.\n\n" +
+                "<b>Exemplo:</b> se você viu um Leão, olhe para o Leão quando ele\n" +
+                "aparecer entre as 4 opções.\n\n" +
+                "Esta tarefa tem 3 rodadas.";
         InicializarOrdem(embaralhar: false);
     }
 
@@ -159,7 +163,7 @@ public class MemoryTask : TaskBase
 
     private IEnumerator ExecutarUmTrial(int idx)
     {
-        uiManager.SetTaskStatus($"Memória ({idx + 1}/3)");
+        uiManager.SetTaskStatus($"MEMÓRIA ({idx + 1}/3)");
 
         // ── FASE 1: ENCODING ─────────────────────────────────────────────────
         MostrarEncodingDisplay(idx, true);
@@ -197,9 +201,10 @@ public class MemoryTask : TaskBase
 
         scores[idx] = eyeTracker.GetCorrectAOIPercentage();
 
-        bool acertou = scores[idx] >= 0.5f;
-        uiManager.ShowFeedback(acertou ? "Correto!" : "Incorreto.", acertou);
         uiManager.ShowAOIs(false);
+
+        bool acertou = scores[idx] >= 0.5f;
+        uiManager.ShowFeedback($"{scores[idx] * 100f:F0}% do tempo na resposta correta", acertou);
 
         yield return new WaitForSeconds(1.5f);
         uiManager.HideFeedback();
