@@ -15,7 +15,7 @@ using UnityEngine;
 public class CalculationTask : TaskBase
 {
     [System.Serializable]
-    public struct TrialCalculo
+    public class TrialCalculo
     {
         [Tooltip("Problema exibido na instrução (ex: '100 − 7 =')")]
         public string problema;
@@ -41,18 +41,35 @@ public class CalculationTask : TaskBase
     private float[] scores;
     private int     trialAtual;
 
+    private void Reset()
+    {
+        trials = new TrialCalculo[]
+        {
+            new TrialCalculo { problema = "100 − 7 =", opcoes = new[]{"93","92","94","97"}, respostaCorreta = "93", nomeFeature = "vr_calc4" },
+            new TrialCalculo { problema = "93 − 7 =",  opcoes = new[]{"86","85","87","84"}, respostaCorreta = "86", nomeFeature = "vr_calc5" },
+            new TrialCalculo { problema = "86 − 7 =",  opcoes = new[]{"79","78","80","77"}, respostaCorreta = "79", nomeFeature = "vr_calc6" },
+        };
+    }
+
     protected override void Awake()
     {
         base.Awake();
-        taskName      = "Cálculo";
+        taskName      = "CÁLCULO";
         executionTime = 8f;
         scores        = new float[trials.Length];
+        if (string.IsNullOrWhiteSpace(taskDescription))
+            taskDescription =
+                "TAREFA: CÁLCULO\n\n" +
+                "Uma conta de subtração será exibida na instrução.\n\n" +
+                "Entre as 4 opções na tela, fixe o olhar na resposta correta.";
     }
 
     // ── API para TestManager ─────────────────────────────────────────────────
 
     public IEnumerator RunAllTrials()
     {
+        yield return StartCoroutine(IntroPhase());
+
         for (int i = 0; i < trials.Length; i++)
         {
             trialAtual = i;
@@ -74,7 +91,7 @@ public class CalculationTask : TaskBase
         uiManager.SetTaskStatus($"Cálculo ({idx + 1}/{trials.Length})");
 
         // Instrução com o problema durante preparação
-        uiManager.ShowInstruction($"<b>{trial.problema}</b>\nOlhe para a resposta correta.");
+        uiManager.ShowInstruction($"Olhe para a resposta correta.\n\n<b>{trial.problema}</b>");
         yield return new WaitForSeconds(preparationTime);
 
         // AOIs com as opções numéricas
@@ -101,6 +118,11 @@ public class CalculationTask : TaskBase
         scores[idx] = eyeTracker.GetCorrectAOIPercentage();
 
         uiManager.ShowAOIs(false);
+
+        bool correct = scores[idx] >= 0.5f;
+        uiManager.ShowFeedback(correct ? "Correto!" : "Incorreto.", correct);
+        yield return new WaitForSeconds(1.5f);
+        uiManager.HideFeedback();
     }
 
     // ── Implementações obrigatórias de TaskBase ──────────────────────────────

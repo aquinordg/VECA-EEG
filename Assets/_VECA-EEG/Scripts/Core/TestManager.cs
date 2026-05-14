@@ -82,7 +82,8 @@ public class TestManager : MonoBehaviour
         TestRunning = true;
         features.Clear();
 
-        uiManager.ShowInstruction("Prepare-se para começar.", 3f);
+        uiManager.HideStartScreen();
+        uiManager.ShowInstruction("\n\nPrepare-se para começar.", 3f);
         yield return new WaitForSeconds(3f);
 
         // ── 1. MEMÓRIA ────────────────────────────────────────────────────────

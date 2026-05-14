@@ -12,40 +12,38 @@ using UnityEngine.UI;
 ///   Recall    (executionTime s)→ 4 AOIs na tela; participante fixa na correta
 ///
 /// FEATURES GERADAS:
-///   Trial 0 → vr_mem8
-///   Trial 1 → vr_mem9
-///   Trial 2 → vr_mem10
+///   Trial 0 → vr_mem8  |  Trial 1 → vr_mem9  |  Trial 2 → vr_mem10
 ///
-/// CONFIGURAÇÃO NO INSPECTOR:
-///   TargetLabels        → 3 strings ("Leão", "Rinoceronte", "Camelo")
-///   DistractorLabels    → lista de outros rótulos para preenchimento das AOIs
-///   EncodingDisplay     → GameObject com Image para mostrar o sprite do alvo
-///   EncodingImage       → Image dentro do EncodingDisplay
-///   TargetSprites       → 3 Sprites (mesma ordem dos TargetLabels)
-///   encodingTime        → 4  (padrão artigo)
-///   executionTime       → 8  (padrão artigo, herdado de TaskBase)
-///   preparationTime     → 3  (instrução antes de cada trial)
+/// MODO SPRITE (recomendado):
+///   Sprites → lista única com todos os sprites disponíveis (mínimo 4).
+///   A cada sessão, 3 são sorteados como alvos e o restante vira distratores.
+///
+/// MODO TEXTO (fallback — quando Sprites está vazio):
+///   TargetLabels     → 3 rótulos dos alvos
+///   DistractorLabels → pool de rótulos distratores
 /// </summary>
 public class MemoryTask : TaskBase
 {
-    [Header("Estímulos")]
-    [Tooltip("Rótulos dos 3 alvos: índice 0=mem8, 1=mem9, 2=mem10")]
+    [Header("Estímulos — Modo Sprite")]
+    [Tooltip("Pool único de sprites. Mínimo 4: 3 serão sorteados como alvos, o resto como distratores.")]
+    public Sprite[] sprites;
+
+    [Header("Estímulos — Modo Texto (fallback)")]
+    [Tooltip("Rótulos dos 3 alvos (usado quando Sprites está vazio)")]
     public string[] targetLabels = { "Leão", "Rinoceronte", "Camelo" };
 
-    [Tooltip("Sprites dos alvos (mesma ordem dos rótulos). Opcional.")]
-    public Sprite[] targetSprites;
-
-    [Tooltip("Pool de sprites distratores para o recall com imagens (mínimo 3)")]
-    public Sprite[] distractorSprites;
-
-    [Tooltip("Pool de rótulos distratores (usado quando sprites não estão configurados)")]
+    [Tooltip("Pool de rótulos distratores")]
     public string[] distractorLabels = { "Elefante", "Zebra", "Girafa", "Tigre", "Lobo" };
+
+    [Header("Ordem")]
+    [Tooltip("Sorteia os alvos e embaralha a ordem de apresentação a cada sessão")]
+    public bool aleatorio = true;
 
     [Header("Display de Encoding")]
     [Tooltip("GameObject exibido apenas durante a fase de encoding")]
     public GameObject encodingDisplay;
 
-    [Tooltip("Image dentro do encodingDisplay (opcional)")]
+    [Tooltip("Image dentro do encodingDisplay")]
     public Image encodingImage;
 
     [Header("Tempos")]
@@ -53,56 +51,120 @@ public class MemoryTask : TaskBase
     public float encodingTime = 4f;
     [Tooltip("Intervalo entre encoding e recall — tela em branco (s)")]
     public float storageDelay = 5f;
-    [Tooltip("Pausa de feedback entre trials (s)")]
-    public float pausaEntrieTrials = 0.8f;
+    [Tooltip("Pausa entre trials (s)")]
+    public float pausaEntreTrials = 0.8f;
 
     // ── Estado interno ───────────────────────────────────────────────────────
 
     private int trialAtual;
     private readonly float[] scores = new float[3];
 
-    private static readonly string[] nomesFeature =
-        { "vr_mem8", "vr_mem9", "vr_mem10" };
+    // Arrays de runtime calculados em InicializarOrdem()
+    private string[] _labelsAtivos;       // 3 rótulos na ordem desta sessão
+    private Sprite[] _spritesAtivos;      // 3 sprites sorteados como alvos
+    private Sprite[] _distractoresAtivos; // sprites restantes (distratores)
+
+    private static readonly string[] nomesFeature = { "vr_mem8", "vr_mem9", "vr_mem10" };
 
     protected override void Awake()
     {
         base.Awake();
-        taskName      = "Memória";
+        taskName      = "MEMÓRIA";
         executionTime = 8f;
+        if (string.IsNullOrWhiteSpace(taskDescription))
+            taskDescription =
+                "TAREFA: MEMÓRIA\n\n" +
+                "Você verá 3 imagens, uma de cada vez.\n\n" +
+                "Memorize cada imagem. Depois de um intervalo, ela aparecerá entre 4 opções — fixe o olhar na imagem que foi apresentada.";
+        InicializarOrdem(embaralhar: false);
     }
+
+    // ── Getters públicos (usados pelo RecallTask) ─────────────────────────────
+
+    public string  GetTargetLabel(int idx)    => _labelsAtivos    != null && idx < _labelsAtivos.Length    ? _labelsAtivos[idx]    : null;
+    public Sprite  GetTargetSprite(int idx)   => _spritesAtivos   != null && idx < _spritesAtivos.Length   ? _spritesAtivos[idx]   : null;
+    public Sprite[] GetDistractorSprites()    => _distractoresAtivos;
 
     // ── API Pública ──────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Executa os 3 trials em sequência e preenche <see cref="GetTrialScore"/>.
-    /// Deve ser chamado pelo TestManager via StartCoroutine.
-    /// </summary>
     public IEnumerator RunAllTrials()
     {
+        yield return StartCoroutine(IntroPhase());
+
+        InicializarOrdem(embaralhar: aleatorio);
+
         for (int i = 0; i < 3; i++)
         {
             trialAtual = i;
             yield return StartCoroutine(ExecutarUmTrial(i));
-            yield return new WaitForSeconds(pausaEntrieTrials);
+            yield return new WaitForSeconds(pausaEntreTrials);
         }
     }
 
-    /// <summary>Score do trial [0-2] após a conclusão (0–1).</summary>
     public float GetTrialScore(int index) =>
         index >= 0 && index < scores.Length ? scores[index] : 0f;
+
+    // ── Inicialização da ordem ────────────────────────────────────────────────
+
+    private void InicializarOrdem(bool embaralhar)
+    {
+        // Modo texto
+        int[] idxTexto = { 0, 1, 2 };
+        if (embaralhar) Embaralhar(idxTexto);
+        _labelsAtivos = new string[3];
+        for (int i = 0; i < 3; i++)
+            _labelsAtivos[i] = targetLabels.Length > idxTexto[i] ? targetLabels[idxTexto[i]] : "";
+
+        // Modo sprite
+        if (sprites == null || sprites.Length < 4)
+        {
+            _spritesAtivos      = null;
+            _distractoresAtivos = null;
+            return;
+        }
+
+        // Montar pool de índices disponíveis
+        var pool = new List<int>();
+        for (int i = 0; i < sprites.Length; i++) pool.Add(i);
+
+        // Sortear 3 alvos
+        int[] alvos = new int[3];
+        for (int i = 0; i < 3; i++)
+        {
+            int pick = embaralhar ? Random.Range(0, pool.Count) : i;
+            alvos[i] = pool[pick];
+            pool.RemoveAt(pick);
+        }
+
+        // Embaralhar a ordem de apresentação dos alvos entre si
+        if (embaralhar) Embaralhar(alvos);
+
+        _spritesAtivos = new Sprite[3];
+        for (int i = 0; i < 3; i++) _spritesAtivos[i] = sprites[alvos[i]];
+
+        _distractoresAtivos = new Sprite[pool.Count];
+        for (int i = 0; i < pool.Count; i++) _distractoresAtivos[i] = sprites[pool[i]];
+    }
+
+    private static void Embaralhar(int[] array)
+    {
+        for (int i = array.Length - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (array[i], array[j]) = (array[j], array[i]);
+        }
+    }
 
     // ── Trial Completo ───────────────────────────────────────────────────────
 
     private IEnumerator ExecutarUmTrial(int idx)
     {
-        string alvo = targetLabels[idx];
-
         uiManager.SetTaskStatus($"Memória ({idx + 1}/3)");
 
         // ── FASE 1: ENCODING ─────────────────────────────────────────────────
         MostrarEncodingDisplay(idx, true);
         uiManager.ShowAOIs(false);
-        uiManager.ShowInstruction($"Memorize esta imagem", encodingTime);
+        uiManager.ShowInstruction("Memorize esta imagem", encodingTime);
 
         yield return new WaitForSeconds(encodingTime);
 
@@ -110,22 +172,18 @@ public class MemoryTask : TaskBase
         MostrarEncodingDisplay(idx, false);
 
         // ── FASE 2: STORAGE ──────────────────────────────────────────────────
-        uiManager.ShowInstruction("...", storageDelay);
+        uiManager.ShowInstruction("\n\n...", storageDelay);
         yield return new WaitForSeconds(storageDelay);
         uiManager.HideInstruction();
 
         // ── FASE 3: RECALL ───────────────────────────────────────────────────
-        ConfigurarAOIsDeRecall(idx, alvo);
+        ConfigurarAOIsDeRecall(idx);
+        uiManager.ShowInstruction("\n\nFixe o olhar na resposta correta.");
 
-        // Instrução permanece visível durante todo o recall (sem duração automática)
-        uiManager.ShowInstruction("Fixe o olhar na resposta correta.");
-
-        // Avisar EyeTracker qual é a AOI correta
         AOI aoiCorreta = uiManager.GetCorrectAOI();
         eyeTracker.SetCurrentCorrectAOI(aoiCorreta);
         eyeTracker.StartRecording();
 
-        // Countdown de recall
         float decorrido = 0f;
         while (decorrido < executionTime)
         {
@@ -137,10 +195,9 @@ public class MemoryTask : TaskBase
         eyeTracker.StopRecording();
         uiManager.HideInstruction();
 
-        // ── SCORE ────────────────────────────────────────────────────────────
         scores[idx] = eyeTracker.GetCorrectAOIPercentage();
 
-        bool acertou = scores[idx] >= 0.5f; // >50% do tempo na correta
+        bool acertou = scores[idx] >= 0.5f;
         uiManager.ShowFeedback(acertou ? "Correto!" : "Incorreto.", acertou);
         uiManager.ShowAOIs(false);
 
@@ -150,30 +207,27 @@ public class MemoryTask : TaskBase
 
     // ── Setup das AOIs de Recall ─────────────────────────────────────────────
 
-    private void ConfigurarAOIsDeRecall(int idx, string alvo)
+    private void ConfigurarAOIsDeRecall(int idx)
     {
-        bool usarSprites = targetSprites != null && idx < targetSprites.Length
-                        && distractorSprites != null && distractorSprites.Length >= 3;
-
-        if (usarSprites)
+        if (_spritesAtivos != null)
             ConfigurarRecallComSprites(idx);
         else
-            ConfigurarRecallComTexto(alvo);
+            ConfigurarRecallComTexto(_labelsAtivos[idx]);
 
         uiManager.ShowAOIs(true);
     }
 
     private void ConfigurarRecallComSprites(int idx)
     {
-        Sprite alvoSprite = targetSprites[idx];
+        Sprite alvo = _spritesAtivos[idx];
 
-        // Pool de distratores: sprites distratores + outros alvos (exceto o atual)
-        var pool = new List<Sprite>(distractorSprites);
-        foreach (var s in targetSprites)
-            if (s != alvoSprite && !pool.Contains(s))
-                pool.Add(s);
+        // Pool: distratores dedicados + outros alvos
+        var pool = new List<Sprite>();
+        if (_distractoresAtivos != null) pool.AddRange(_distractoresAtivos);
+        foreach (var s in _spritesAtivos)
+            if (s != alvo && !pool.Contains(s)) pool.Add(s);
 
-        var opcoes = new List<Sprite> { alvoSprite };
+        var opcoes = new List<Sprite> { alvo };
         for (int i = 0; i < 3 && pool.Count > 0; i++)
         {
             int r = Random.Range(0, pool.Count);
@@ -181,18 +235,15 @@ public class MemoryTask : TaskBase
             pool.RemoveAt(r);
         }
 
-        uiManager.SetupAOIs(opcoes.ToArray(), alvoSprite);
+        uiManager.SetupAOIs(opcoes.ToArray(), alvo);
     }
 
     private void ConfigurarRecallComTexto(string alvo)
     {
         var pool = new List<string>(distractorLabels);
-        foreach (var lbl in targetLabels)
-            pool.Remove(lbl);
-
-        foreach (var lbl in targetLabels)
-            if (lbl != alvo && !pool.Contains(lbl))
-                pool.Add(lbl);
+        foreach (var lbl in _labelsAtivos) pool.Remove(lbl);
+        foreach (var lbl in _labelsAtivos)
+            if (lbl != alvo && !pool.Contains(lbl)) pool.Add(lbl);
 
         var opcoes = new List<string> { alvo };
         for (int i = 0; i < 3 && pool.Count > 0; i++)
@@ -212,26 +263,15 @@ public class MemoryTask : TaskBase
         if (encodingDisplay == null) return;
         encodingDisplay.SetActive(ativo);
 
-        if (!ativo) return;
-
-        // Atribuir sprite se disponível
-        if (encodingImage != null && targetSprites != null && idx < targetSprites.Length)
-            encodingImage.sprite = targetSprites[idx];
+        if (!ativo || encodingImage == null) return;
+        if (_spritesAtivos != null && idx < _spritesAtivos.Length)
+            encodingImage.sprite = _spritesAtivos[idx];
     }
 
-    // ── Implementação de TaskBase (para uso com StartTask() de trial único) ──
+    // ── Implementação de TaskBase ────────────────────────────────────────────
 
-    protected override void SetupTrial()
-    {
-        ConfigurarAOIsDeRecall(trialAtual, targetLabels[trialAtual]);
-    }
-
-    protected override float CalculateScore() =>
-        eyeTracker.GetCorrectAOIPercentage();
-
-    protected override string GetFeatureName() =>
-        trialAtual < nomesFeature.Length ? nomesFeature[trialAtual] : "vr_mem";
-
-    protected override string GetInstructionText() =>
-        $"Onde estava: <b>{targetLabels[trialAtual]}</b>?";
+    protected override void   SetupTrial()      => ConfigurarAOIsDeRecall(trialAtual);
+    protected override float  CalculateScore()  => eyeTracker.GetCorrectAOIPercentage();
+    protected override string GetFeatureName()  => trialAtual < nomesFeature.Length ? nomesFeature[trialAtual] : "vr_mem";
+    protected override string GetInstructionText() => $"Onde estava: <b>{_labelsAtivos[trialAtual]}</b>?";
 }

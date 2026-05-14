@@ -4,120 +4,170 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// Gerencia todos os elementos visuais da interface durante os testes cognitivos.
-///
-/// CONFIGURAÇÃO NO INSPECTOR:
-///   - TaskStatusText  → TMP no HeaderPanel (ex: "Memória – Trial 1")
-///   - TimerText       → TMP no HeaderPanel (ex: "00:08")
-///   - InstructionText → TMP dentro do InstructionPanel
-///   - FeedbackText    → TMP dentro do FeedbackPanel
-///   - InstructionPanel → GameObject com o painel de instruções
-///   - FeedbackPanel    → GameObject com o painel de feedback
-///   - AoiGrid          → Transform pai das 4 AOIs no WorldCanvas
-/// </summary>
 public class UIManager : MonoBehaviour
 {
-    [Header("Textos")]
+    [Header("Status & Timer")]
     public TextMeshProUGUI taskStatusText;
     public TextMeshProUGUI timerText;
+
+    [Header("Instruction Panel")]
+    public GameObject      instructionPanel;
     public TextMeshProUGUI instructionText;
+    [Tooltip("Button inside InstructionPanel — wire OnClick → UIManager.ConfirmUnderstood")]
+    public Button          gotItButton;
+
+    [Header("Feedback Panel")]
+    public GameObject      feedbackPanel;
     public TextMeshProUGUI feedbackText;
 
-    [Header("Painéis")]
-    public GameObject instructionPanel;
-    public GameObject feedbackPanel;
-
-    [Header("Grid de AOIs")]
-    [Tooltip("Transform pai que contém as 4 AOIs")]
+    [Header("AOI Grid")]
+    [Tooltip("Parent transform containing the 4 AOIs")]
     public Transform aoiGrid;
 
-    [Header("Cores de Feedback")]
-    public Color corCorreta  = new Color(0.10f, 0.80f, 0.20f);
-    public Color corErrada   = new Color(0.90f, 0.15f, 0.15f);
-    public Color corNeutral  = new Color(0.20f, 0.60f, 1.00f);
+    [Header("Start Screen")]
+    [Tooltip("Parent panel containing the intro text and Start button — hidden when the test begins")]
+    public GameObject startScreenPanel;
 
-    // Cache das AOIs filhas do grid
-    private AOI[] aois;
-    private Coroutine corotinaInstrucao;
+    [Tooltip("Text appended to every task description shown with the Got It button")]
+    public string gotItHint = "Para começar, olhe para o botão ENTENDIDO no canto da tela.";
+
+    [Tooltip("TMP element that shows the intro text above the Start button")]
+    public TextMeshProUGUI introText;
+
+    [TextArea(4, 10)]
+    [Tooltip("Introductory text shown on the start screen")]
+    public string introMessage =
+        "Bem-vindo à Avaliação Cognitiva VECA-EEG.\n\n" +
+        "Este teste avalia funções cognitivas como memória, atenção, abstração, cálculo e execução de comandos.\n\n" +
+        "Em cada etapa, leia a instrução com atenção e fixe o olhar na resposta correta entre as opções apresentadas na tela.\n\n" +
+        "Quando estiver pronto para começar, pressione <b>INICIAR TESTE</b>.";
+
+    [Header("Feedback Colors")]
+    public Color correctColor  = new Color(0.10f, 0.80f, 0.20f);
+    public Color incorrectColor = new Color(0.90f, 0.15f, 0.15f);
+    public Color neutralColor  = new Color(0.20f, 0.60f, 1.00f);
+
+    // ── Internal state ───────────────────────────────────────────────────────
+
+    private AOI[]     aois;
+    private Coroutine instructionCoroutine;
+    private bool      _waitingForConfirmation;
+
+    // ── Unity ────────────────────────────────────────────────────────────────
 
     void Awake()
     {
         if (feedbackPanel)    feedbackPanel.SetActive(false);
         if (instructionPanel) instructionPanel.SetActive(false);
+        if (gotItButton)      gotItButton.gameObject.SetActive(false);
 
-        // Pré-carregar AOIs enquanto o contexto de GUI ainda não existe
         if (aoiGrid != null)
-            aois = aoiGrid.GetComponentsInChildren<AOI>(true); // true = inclui inativos
+            aois = aoiGrid.GetComponentsInChildren<AOI>(true);
     }
 
     void Start()
     {
-        // SetActive separado do Awake para evitar redraw do Inspector antes do contexto de GUI
         if (aoiGrid != null) aoiGrid.gameObject.SetActive(false);
+        if (introText != null) introText.text = introMessage;
     }
 
-    // ── Status e Timer ───────────────────────────────────────────────────────
+    // ── Start Screen ─────────────────────────────────────────────────────────
 
-    public void SetTaskStatus(string texto)
+    public void HideStartScreen()
     {
-        if (taskStatusText) taskStatusText.text = texto;
+        if (startScreenPanel != null)
+            startScreenPanel.SetActive(false);
+        else if (introText != null)
+            introText.gameObject.SetActive(false);
     }
 
-    /// <param name="segundos">Segundos restantes; formata como MM:SS</param>
-    public void UpdateTimer(float segundos)
+    // ── Status & Timer ───────────────────────────────────────────────────────
+
+    public void SetTaskStatus(string text)
+    {
+        if (taskStatusText) taskStatusText.text = text;
+    }
+
+    public void UpdateTimer(float seconds)
     {
         if (!timerText) return;
-        segundos = Mathf.Max(0f, segundos); // evita exibir tempo negativo no último frame
-        int min = Mathf.FloorToInt(segundos / 60f);
-        int seg = Mathf.FloorToInt(segundos % 60f);
+        seconds = Mathf.Max(0f, seconds);
+        int min = Mathf.FloorToInt(seconds / 60f);
+        int seg = Mathf.FloorToInt(seconds % 60f);
         timerText.text = $"{min:00}:{seg:00}";
     }
 
-    // ── Instruções ───────────────────────────────────────────────────────────
+    // ── Instructions ─────────────────────────────────────────────────────────
 
-    /// <param name="texto">Mensagem exibida no InstructionPanel</param>
-    /// <param name="duracao">0 = permanece até HideInstruction() ser chamado</param>
-    public void ShowInstruction(string texto, float duracao = 0f)
+    public void ShowInstruction(string text, float duration = 0f)
     {
-        if (corotinaInstrucao != null) StopCoroutine(corotinaInstrucao);
+        if (instructionCoroutine != null) StopCoroutine(instructionCoroutine);
 
         if (instructionPanel) instructionPanel.SetActive(true);
-        if (instructionText)  instructionText.text = texto;
+        if (instructionText)  instructionText.text = text;
 
-        if (duracao > 0f)
-            corotinaInstrucao = StartCoroutine(OcultarInstrucaoApos(duracao));
+        if (duration > 0f)
+            instructionCoroutine = StartCoroutine(HideInstructionAfter(duration));
     }
 
     public void HideInstruction()
     {
-        if (corotinaInstrucao != null)
+        if (instructionCoroutine != null)
         {
-            StopCoroutine(corotinaInstrucao);
-            corotinaInstrucao = null;
+            StopCoroutine(instructionCoroutine);
+            instructionCoroutine = null;
         }
         if (instructionPanel) instructionPanel.SetActive(false);
     }
 
-    private IEnumerator OcultarInstrucaoApos(float delay)
+    private IEnumerator HideInstructionAfter(float delay)
     {
         yield return new WaitForSeconds(delay);
         HideInstruction();
     }
 
+    // ── Got It Button ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Shows the instruction panel with the given text and waits for the Got It button click.
+    /// Wire the button's OnClick to UIManager.ConfirmUnderstood in the Inspector.
+    /// </summary>
+    public IEnumerator WaitForConfirmation(string text)
+    {
+        string full = string.IsNullOrWhiteSpace(gotItHint)
+            ? text
+            : $"{text}\n\n<b>{gotItHint}</b>";
+        ShowInstruction(full);
+        _waitingForConfirmation = true;
+
+        if (gotItButton != null)
+            gotItButton.gameObject.SetActive(true);
+
+        yield return new WaitUntil(() => !_waitingForConfirmation);
+
+        if (gotItButton != null)
+            gotItButton.gameObject.SetActive(false);
+
+        HideInstruction();
+    }
+
+    /// <summary>Called by the Got It button's OnClick event in the scene.</summary>
+    public void ConfirmUnderstood()
+    {
+        _waitingForConfirmation = false;
+    }
+
     // ── Feedback ─────────────────────────────────────────────────────────────
 
-    /// <param name="mensagem">Texto exibido no FeedbackPanel</param>
-    /// <param name="correto">true = verde, false = vermelho, null = azul neutro</param>
-    public void ShowFeedback(string mensagem, bool? correto = null)
+    public void ShowFeedback(string message, bool? correct = null)
     {
         if (feedbackPanel) feedbackPanel.SetActive(true);
         if (feedbackText)
         {
-            feedbackText.text = mensagem;
-            feedbackText.color = correto == null  ? corNeutral
-                               : correto.Value    ? corCorreta
-                                                  : corErrada;
+            feedbackText.text  = message;
+            feedbackText.color = correct == null ? neutralColor
+                               : correct.Value   ? correctColor
+                                                 : incorrectColor;
         }
     }
 
@@ -128,25 +178,22 @@ public class UIManager : MonoBehaviour
 
     // ── AOIs ─────────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Modo texto: distribui rótulos pelas AOIs embaralhando a posição.
-    /// </summary>
-    public void SetupAOIs(string[] opcoes, string respostaCorreta)
+    public void SetupAOIs(string[] options, string correctAnswer)
     {
         if (aois == null || aois.Length == 0) return;
 
-        string[] embaralhadas = (string[])opcoes.Clone();
-        EmbaralharArray(embaralhadas);
+        string[] shuffled = (string[])options.Clone();
+        ShuffleArray(shuffled);
 
         for (int i = 0; i < aois.Length; i++)
         {
-            if (i < embaralhadas.Length)
+            if (i < shuffled.Length)
             {
                 aois[i].gameObject.SetActive(true);
-                aois[i].SetSprite(null);               // garante modo texto
-                aois[i].SetContent(embaralhadas[i]);
-                aois[i].aoiID           = embaralhadas[i];
-                aois[i].isCorrectAnswer = (embaralhadas[i] == respostaCorreta);
+                aois[i].SetSprite(null);
+                aois[i].SetContent(shuffled[i]);
+                aois[i].aoiID           = shuffled[i];
+                aois[i].isCorrectAnswer = (shuffled[i] == correctAnswer);
                 aois[i].ResetData();
             }
             else
@@ -156,25 +203,21 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Modo imagem: distribui sprites pelas AOIs embaralhando a posição.
-    /// Usa o nome do sprite como aoiID.
-    /// </summary>
-    public void SetupAOIs(Sprite[] sprites, Sprite spriteCorreto)
+    public void SetupAOIs(Sprite[] sprites, Sprite correctSprite)
     {
         if (aois == null || aois.Length == 0) return;
 
-        Sprite[] embaralhados = (Sprite[])sprites.Clone();
-        EmbaralharArray(embaralhados);
+        Sprite[] shuffled = (Sprite[])sprites.Clone();
+        ShuffleArray(shuffled);
 
         for (int i = 0; i < aois.Length; i++)
         {
-            if (i < embaralhados.Length)
+            if (i < shuffled.Length)
             {
                 aois[i].gameObject.SetActive(true);
-                aois[i].SetSprite(embaralhados[i]);
-                aois[i].aoiID           = embaralhados[i].name;
-                aois[i].isCorrectAnswer = (embaralhados[i] == spriteCorreto);
+                aois[i].SetSprite(shuffled[i]);
+                aois[i].aoiID           = shuffled[i].name;
+                aois[i].isCorrectAnswer = (shuffled[i] == correctSprite);
                 aois[i].ResetData();
             }
             else
@@ -184,16 +227,11 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Ativa ou desativa o AOIGrid inteiro.
-    /// Ao ativar, os filhos já estão configurados por SetupAOIs() e aparecem no estado correto.
-    /// </summary>
-    public void ShowAOIs(bool visivel)
+    public void ShowAOIs(bool visible)
     {
-        if (aoiGrid != null) aoiGrid.gameObject.SetActive(visivel);
+        if (aoiGrid != null) aoiGrid.gameObject.SetActive(visible);
     }
 
-    /// <summary>Retorna a AOI marcada como resposta correta, ou null.</summary>
     public AOI GetCorrectAOI()
     {
         if (aois == null) return null;
@@ -204,9 +242,9 @@ public class UIManager : MonoBehaviour
 
     public AOI[] GetAllAOIs() => aois;
 
-    // ── Utilitários ──────────────────────────────────────────────────────────
+    // ── Utilities ────────────────────────────────────────────────────────────
 
-    private void EmbaralharArray<T>(T[] array)
+    private void ShuffleArray<T>(T[] array)
     {
         for (int i = array.Length - 1; i > 0; i--)
         {

@@ -6,19 +6,32 @@ using UnityEngine;
 /// Mostra 4 opções; o participante deve fixar no estímulo alvo.
 /// A instrução permanece visível durante a execução para lembrar o alvo.
 ///
-/// CONFIGURAÇÃO NO INSPECTOR:
-///   Instrucao       → texto exibido (ex: "Olhe para o animal selvagem")
-///   Opcoes          → 4 rótulos (ex: "Leão", "Vaca", "Porco", "Galinha")
-///   RespostaCorreta → um dos rótulos acima (ex: "Leão")
-///   executionTime   → 5 s (padrão artigo)
+/// CONFIGURAÇÃO NO INSPECTOR (modo imagem):
+///   OpcaoSprites      → 4 sprites (ex: Leão, Vaca, Porco, Galinha)
+///   SpriteCorreto     → sprite da resposta correta (ex: Leão)
+///   Instrucao         → texto exibido durante o trial
+///   executionTime     → 5 s (padrão artigo)
+///
+/// CONFIGURAÇÃO NO INSPECTOR (modo texto — fallback):
+///   Opcoes            → 4 rótulos
+///   RespostaCorreta   → um dos rótulos acima
 /// </summary>
 public class AttentionTask : TaskBase
 {
     [Header("Conteúdo")]
     [Tooltip("Instrução exibida durante o trial")]
-    public string instrucao = "Olhe para o animal selvagem.";
+    [TextArea(2, 4)]
+    public string instrucao = "\n\n\nOlhe para o animal selvagem.";
 
-    [Tooltip("4 opções exibidas nos botões")]
+    [Header("Modo Imagem (prioridade)")]
+    [Tooltip("4 sprites exibidos nos botões")]
+    public Sprite[] opcaoSprites;
+
+    [Tooltip("Sprite da resposta correta (deve ser um dos opcaoSprites)")]
+    public Sprite spriteCorreto;
+
+    [Header("Modo Texto (fallback)")]
+    [Tooltip("4 rótulos exibidos nos botões")]
     public string[] opcoes = { "Leão", "Vaca", "Porco", "Galinha" };
 
     [Tooltip("Qual das opções é a resposta correta")]
@@ -27,14 +40,25 @@ public class AttentionTask : TaskBase
     protected override void Awake()
     {
         base.Awake();
-        taskName                   = "Atenção";
-        executionTime              = 5f;
-        mostrarInstrucaoNaExecucao = true;
+        taskName                        = "ATENÇÃO";
+        executionTime                   = 5f;
+        showInstructionDuringExecution  = true;
+        if (string.IsNullOrWhiteSpace(taskDescription))
+            taskDescription =
+                "TAREFA: ATENÇÃO\n\n" +
+                "Uma instrução será exibida.\n\n" +
+                "Entre as 4 opções na tela, fixe o olhar no item correto.";
     }
 
     protected override void SetupTrial()
     {
-        uiManager.SetupAOIs(opcoes, respostaCorreta);
+        bool usarSprites = opcaoSprites != null && opcaoSprites.Length >= 2 && spriteCorreto != null;
+
+        if (usarSprites)
+            uiManager.SetupAOIs(opcaoSprites, spriteCorreto);
+        else
+            uiManager.SetupAOIs(opcoes, respostaCorreta);
+
         uiManager.ShowAOIs(true);
     }
 

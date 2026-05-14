@@ -32,14 +32,21 @@ public class RecallTask : TaskBase
     protected override void Awake()
     {
         base.Awake();
-        taskName      = "Recall";
+        taskName      = "MEMÓRIA TARDIA";
         executionTime = 8f;
+        if (string.IsNullOrWhiteSpace(taskDescription))
+            taskDescription =
+                "TAREFA: MEMÓRIA TARDIA\n\n" +
+                "Você se lembra das imagens que viu no início do teste?\n\n" +
+                "Para cada pergunta, fixe o olhar na imagem que foi apresentada lá atrás, entre as 4 opções na tela.";
     }
 
     // ── API para TestManager ─────────────────────────────────────────────────
 
     public IEnumerator RunAllTrials()
     {
+        yield return StartCoroutine(IntroPhase());
+
         for (int i = 0; i < 3; i++)
         {
             trialAtual = i;
@@ -66,9 +73,17 @@ public class RecallTask : TaskBase
         uiManager.ShowInstruction(instrucaoPreparacao);
         yield return new WaitForSeconds(preparationTime);
 
-        ConfigurarAOIs(idx);
+        if (!ConfigurarAOIs(idx))
+        {
+            scores[idx] = 0f;
+            yield break;
+        }
+
+        string[] ordinals = { "primeira", "segunda", "terceira" };
+        string ordinal = idx < ordinals.Length ? ordinals[idx] : $"{idx + 1}ª";
+
         uiManager.ShowAOIs(true);
-        uiManager.ShowInstruction(instrucaoExecucao);
+        uiManager.ShowInstruction($"\n\nFixe o olhar na imagem que foi mostrada pela <b>{ordinal}</b> vez.");
 
         AOI aoiCorreta = uiManager.GetCorrectAOI();
         eyeTracker.SetCurrentCorrectAOI(aoiCorreta);
@@ -87,23 +102,37 @@ public class RecallTask : TaskBase
         scores[idx] = eyeTracker.GetCorrectAOIPercentage();
 
         uiManager.ShowAOIs(false);
+
+        bool correct = scores[idx] >= 0.5f;
+        uiManager.ShowFeedback(correct ? "Correto!" : "Incorreto.", correct);
+        yield return new WaitForSeconds(1.5f);
+        uiManager.HideFeedback();
     }
 
     // ── Setup das AOIs (reutiliza lógica da MemoryTask) ──────────────────────
 
-    private void ConfigurarAOIs(int idx)
+    private bool ConfigurarAOIs(int idx)
     {
-        if (memoryTask == null) { Debug.LogWarning("[RecallTask] MemoryTask não atribuído."); return; }
+        if (memoryTask == null)
+        {
+            Debug.LogError("[RecallTask] MemoryTask não atribuído — trial abortado.");
+            return false;
+        }
 
-        bool usarSprites = memoryTask.targetSprites  != null && idx < memoryTask.targetSprites.Length
-                        && memoryTask.distractorSprites != null && memoryTask.distractorSprites.Length >= 3;
+        Sprite   spriteAlvo  = memoryTask.GetTargetSprite(idx);
+        Sprite[] distractors = memoryTask.GetDistractorSprites();
+        bool     usarSprites = spriteAlvo != null;
 
         if (usarSprites)
         {
-            Sprite alvo = memoryTask.targetSprites[idx];
-            var pool    = new List<Sprite>(memoryTask.distractorSprites);
-            foreach (var s in memoryTask.targetSprites)
-                if (s != alvo && !pool.Contains(s)) pool.Add(s);
+            Sprite alvo = spriteAlvo;
+            var pool    = new List<Sprite>();
+            if (distractors != null) pool.AddRange(distractors);
+            for (int k = 0; k < 3; k++)
+            {
+                Sprite s = memoryTask.GetTargetSprite(k);
+                if (s != alvo && s != null && !pool.Contains(s)) pool.Add(s);
+            }
 
             var opcoes = new List<Sprite> { alvo };
             for (int i = 0; i < 3 && pool.Count > 0; i++)
@@ -116,11 +145,14 @@ public class RecallTask : TaskBase
         }
         else
         {
-            string alvo = memoryTask.targetLabels[idx];
+            string alvo = memoryTask.GetTargetLabel(idx);
             var pool    = new List<string>(memoryTask.distractorLabels);
-            foreach (var lbl in memoryTask.targetLabels) pool.Remove(lbl);
-            foreach (var lbl in memoryTask.targetLabels)
+            for (int k = 0; k < 3; k++) pool.Remove(memoryTask.GetTargetLabel(k));
+            for (int k = 0; k < 3; k++)
+            {
+                string lbl = memoryTask.GetTargetLabel(k);
                 if (lbl != alvo && !pool.Contains(lbl)) pool.Add(lbl);
+            }
 
             var opcoes = new List<string> { alvo };
             for (int i = 0; i < 3 && pool.Count > 0; i++)
@@ -131,11 +163,13 @@ public class RecallTask : TaskBase
             }
             uiManager.SetupAOIs(opcoes.ToArray(), alvo);
         }
+
+        return true;
     }
 
     // ── Implementações obrigatórias de TaskBase ──────────────────────────────
 
-    protected override void   SetupTrial()       => ConfigurarAOIs(trialAtual);
+    protected override void   SetupTrial()       => _ = ConfigurarAOIs(trialAtual);
     protected override float  CalculateScore()   => scores.Length > trialAtual ? scores[trialAtual] : 0f;
     protected override string GetFeatureName()   => "vr_recall";
     protected override string GetInstructionText() => instrucaoExecucao;
