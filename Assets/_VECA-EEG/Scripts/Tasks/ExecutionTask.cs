@@ -16,6 +16,7 @@ public class ExecutionTask : TaskBase
 {
     [Header("Conteúdo")]
     [Tooltip("Comando exibido durante o trial")]
+    [TextArea(2, 4)]
     public string instrucao = "Olhe para o número que vem depois do 2 na sequência: 1 - 2 - ?";
 
     [Tooltip("4 opções exibidas nos botões")]
@@ -27,9 +28,14 @@ public class ExecutionTask : TaskBase
     protected override void Awake()
     {
         base.Awake();
-        taskName                   = "Execução";
-        executionTime              = 8f;
-        mostrarInstrucaoNaExecucao = true;
+        taskName                       = "EXECUÇÃO";
+        executionTime                  = 8f;
+        showInstructionDuringExecution = true;
+        if (string.IsNullOrWhiteSpace(taskDescription))
+            taskDescription =
+                "TAREFA: EXECUÇÃO\n\n" +
+                "Um comando será exibido na instrução.\n\n" +
+                "Leia com atenção e fixe o olhar na opção correta entre as 4 apresentadas na tela.";
     }
 
     protected override void SetupTrial()

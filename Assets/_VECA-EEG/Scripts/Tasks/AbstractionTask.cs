@@ -35,18 +35,19 @@ public class AbstractionTask : TaskBase
         new TrialAbstracao
         {
             par             = "Trem e Bicicleta",
-            opcoes          = new[] { "Meio de Transporte", "Animal", "Cor", "Alimento" },
-            respostaCorreta = "Meio de Transporte"
+            opcoes          = new[] { "Transporte", "Animal", "Cor", "Alimento" },
+            respostaCorreta = "Transporte"
         },
         new TrialAbstracao
         {
             par             = "Relógio e Régua",
-            opcoes          = new[] { "Instrumento de Medição", "Ferramenta", "Brinquedo", "Roupa" },
-            respostaCorreta = "Instrumento de Medição"
+            opcoes          = new[] { "Medição", "Ferramenta", "Brinquedo", "Roupa" },
+            respostaCorreta = "Medição"
         }
     };
 
     [Header("Textos")]
+    [TextArea(1, 3)]
     public string complementoInstrucao = "O que têm em comum?";
 
     [Header("Tempos")]
@@ -58,15 +59,22 @@ public class AbstractionTask : TaskBase
     protected override void Awake()
     {
         base.Awake();
-        taskName      = "Abstração";
+        taskName      = "ABSTRAÇÃO";
         executionTime = 8f;
         scores        = new float[trials.Length];
+        if (string.IsNullOrWhiteSpace(taskDescription))
+            taskDescription =
+                "TAREFA: ABSTRAÇÃO\n\n" +
+                "Dois conceitos serão exibidos na instrução.\n\n" +
+                "Entre as 4 opções na tela, fixe o olhar na categoria que melhor descreve o que eles têm em comum.";
     }
 
     // ── API para TestManager ─────────────────────────────────────────────────
 
     public IEnumerator RunAllTrials()
     {
+        yield return StartCoroutine(IntroPhase());
+
         for (int i = 0; i < trials.Length; i++)
         {
             trialAtual = i;
@@ -121,6 +129,11 @@ public class AbstractionTask : TaskBase
         scores[idx] = eyeTracker.GetCorrectAOIPercentage();
 
         uiManager.ShowAOIs(false);
+
+        bool correct = scores[idx] >= 0.5f;
+        uiManager.ShowFeedback(correct ? "Correto!" : "Incorreto.", correct);
+        yield return new WaitForSeconds(1.5f);
+        uiManager.HideFeedback();
     }
 
     // ── Implementações obrigatórias de TaskBase ──────────────────────────────

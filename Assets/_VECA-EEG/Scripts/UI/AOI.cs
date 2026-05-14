@@ -26,6 +26,14 @@ public class AOI : MonoBehaviour
         backgroundImage = GetComponent<Image>();
         button = GetComponent<Button>();
         labelText = GetComponentInChildren<TextMeshProUGUI>();
+
+        if (labelText != null)
+        {
+            labelText.enableAutoSizing = true;
+            labelText.fontSizeMin      = 10f;
+            labelText.fontSizeMax      = labelText.fontSize;
+            labelText.enableWordWrapping = true;
+        }
     }
 
     public void SetContent(string text)
