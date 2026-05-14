@@ -15,7 +15,7 @@ using UnityEngine;
 ///   7. Execução   → vr_exec
 ///   8. Recall     → vr_recall
 ///
-/// CSV salvo em: Application.persistentDataPath/Results/VECA_<ID>_<timestamp>.csv
+/// CSV salvo em: &lt;projeto&gt;/Results/VECA_&lt;ID&gt;_&lt;timestamp&gt;.csv
 /// </summary>
 public class TestManager : MonoBehaviour
 {
@@ -34,8 +34,8 @@ public class TestManager : MonoBehaviour
     public RecallTask      recallTask;
 
     [Header("Participante")]
-    [Tooltip("Código do participante (aparece no nome do CSV)")]
-    public string participantID = "P001";
+    [Tooltip("Preenchido automaticamente com ID aleatório ao iniciar o teste")]
+    public string participantID = "";
 
     [Header("Opções")]
     public bool  autoStart         = false;
@@ -61,6 +61,9 @@ public class TestManager : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+
+        participantID = GerarParticipantID();
+        if (uiManager != null) uiManager.SetParticipantID(participantID);
     }
 
     void Start()
@@ -83,6 +86,7 @@ public class TestManager : MonoBehaviour
         features.Clear();
 
         uiManager.HideStartScreen();
+        uiManager.HideParticipantID();
         uiManager.ShowInstruction("\n\nPrepare-se para começar.", 3f);
         yield return new WaitForSeconds(3f);
 
@@ -112,8 +116,18 @@ public class TestManager : MonoBehaviour
         // ── ENCERRAMENTO ──────────────────────────────────────────────────────
         SalvarCSV();
         uiManager.SetTaskStatus("Concluído");
-        uiManager.ShowInstruction($"Avaliação concluída!\n\nObrigado, {participantID}.\nResultados salvos.", 0f);
+        uiManager.SetParticipantID(participantID);
+        uiManager.ShowInstruction(
+            "Avaliação concluída!\n\nObrigado pela participação.\nResultados salvos.", 0f);
         TestRunning = false;
+
+        yield return StartCoroutine(uiManager.WaitForRestart());
+
+        participantID = GerarParticipantID();
+        uiManager.SetParticipantID(participantID);
+        uiManager.HideInstruction();
+        uiManager.SetTaskStatus("");
+        uiManager.ShowStartScreen();
     }
 
     // ── Coordenadores por tarefa ─────────────────────────────────────────────
@@ -182,11 +196,22 @@ public class TestManager : MonoBehaviour
         Debug.Log($"[Recall] {features["vr_recall"]:F3}");
     }
 
+    // ── Geração de ID ────────────────────────────────────────────────────────
+
+    private static string GerarParticipantID()
+    {
+        const string chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // sem 0/O/1/I/L
+        var sb = new System.Text.StringBuilder(6);
+        for (int i = 0; i < 6; i++)
+            sb.Append(chars[Random.Range(0, chars.Length)]);
+        return sb.ToString();
+    }
+
     // ── Exportação CSV ───────────────────────────────────────────────────────
 
     private void SalvarCSV()
     {
-        string pasta    = Path.Combine(Application.persistentDataPath, "Results");
+        string pasta    = Path.Combine(Application.dataPath, "..", "Results");
         Directory.CreateDirectory(pasta);
 
         string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -35,6 +36,10 @@ public class CalculationTask : TaskBase
         new TrialCalculo { problema = "86 − 7 =",  opcoes = new[]{"79","78","80","77"}, respostaCorreta = "79", nomeFeature = "vr_calc6" },
     };
 
+    [Header("Aleatorização")]
+    [Tooltip("Gera problemas aleatórios a cada sessão (sobrescreve os valores acima)")]
+    public bool aleatorio = true;
+
     [Header("Tempos")]
     public float pausaEntreTrials = 1f;
 
@@ -46,7 +51,7 @@ public class CalculationTask : TaskBase
         trials = new TrialCalculo[]
         {
             new TrialCalculo { problema = "100 − 7 =", opcoes = new[]{"93","92","94","97"}, respostaCorreta = "93", nomeFeature = "vr_calc4" },
-            new TrialCalculo { problema = "93 − 7 =",  opcoes = new[]{"86","85","87","84"}, respostaCorreta = "86", nomeFeature = "vr_calc5" },
+            new TrialCalculo { problema = "93 − 5 =",  opcoes = new[]{"86","85","87","84"}, respostaCorreta = "86", nomeFeature = "vr_calc5" },
             new TrialCalculo { problema = "86 − 7 =",  opcoes = new[]{"79","78","80","77"}, respostaCorreta = "79", nomeFeature = "vr_calc6" },
         };
     }
@@ -59,15 +64,19 @@ public class CalculationTask : TaskBase
         scores        = new float[trials.Length];
         if (string.IsNullOrWhiteSpace(taskDescription))
             taskDescription =
-                "TAREFA: CÁLCULO\n\n" +
-                "Uma conta de subtração será exibida na instrução.\n\n" +
-                "Entre as 4 opções na tela, fixe o olhar na resposta correta.";
+                "<b>TAREFA:</b> CÁLCULO\n\n" +
+                "Uma conta de subtração será exibida na instrução.\n" +
+                "Entre as 4 opções na tela, fixe o olhar na resposta correta.\n\n" +
+                "<b>Exemplo:</b> \"10 − 8 =\" → olhe para o número 2.\n\n" +
+                "Esta tarefa tem 3 rodadas.";
     }
 
     // ── API para TestManager ─────────────────────────────────────────────────
 
     public IEnumerator RunAllTrials()
     {
+        if (aleatorio) GerarTrialsAleatorios();
+
         yield return StartCoroutine(IntroPhase());
 
         for (int i = 0; i < trials.Length; i++)
@@ -88,7 +97,7 @@ public class CalculationTask : TaskBase
     private IEnumerator ExecutarUmTrial(int idx)
     {
         var trial = trials[idx];
-        uiManager.SetTaskStatus($"Cálculo ({idx + 1}/{trials.Length})");
+        uiManager.SetTaskStatus($"CÁLCULO ({idx + 1}/{trials.Length})");
 
         // Instrução com o problema durante preparação
         uiManager.ShowInstruction($"Olhe para a resposta correta.\n\n<b>{trial.problema}</b>");
@@ -99,7 +108,7 @@ public class CalculationTask : TaskBase
         uiManager.ShowAOIs(true);
 
         // Problema permanece visível durante execução
-        uiManager.ShowInstruction($"<b>{trial.problema}</b>");
+        uiManager.ShowInstruction($"Olhe para a resposta correta.\n\n<b>{trial.problema}</b>");
 
         AOI aoiCorreta = uiManager.GetCorrectAOI();
         eyeTracker.SetCurrentCorrectAOI(aoiCorreta);
@@ -120,9 +129,57 @@ public class CalculationTask : TaskBase
         uiManager.ShowAOIs(false);
 
         bool correct = scores[idx] >= 0.5f;
-        uiManager.ShowFeedback(correct ? "Correto!" : "Incorreto.", correct);
+        uiManager.ShowFeedback($"{scores[idx] * 100f:F0}% do tempo na resposta correta", correct);
         yield return new WaitForSeconds(1.5f);
         uiManager.HideFeedback();
+    }
+
+    // ── Geração Aleatória ────────────────────────────────────────────────────
+
+    private void GerarTrialsAleatorios()
+    {
+        for (int i = 0; i < trials.Length; i++)
+        {
+            int a, b;
+            do {
+                a = Random.Range(1, 11); // 1–10
+                b = Random.Range(1, 6);  // 1–5
+            } while (a <= b);            // garante a > b
+
+            bool soma      = Random.value >= 0.5f;
+            int  resultado = soma ? a + b : a - b;
+            string operador = soma ? "+" : "−";
+
+            var distratores = GerarDistratores(resultado, 3);
+
+            string featureName = trials[i].nomeFeature;
+            trials[i] = new TrialCalculo
+            {
+                problema        = $"{a} {operador} {b} =",
+                opcoes          = new[] { resultado.ToString(), distratores[0].ToString(),
+                                          distratores[1].ToString(), distratores[2].ToString() },
+                respostaCorreta = resultado.ToString(),
+                nomeFeature     = featureName
+            };
+        }
+    }
+
+    private static List<int> GerarDistratores(int correto, int quantidade)
+    {
+        var pool = new List<int>();
+        for (int d = 1; d <= 5; d++)
+        {
+            if (correto + d > 0) pool.Add(correto + d);
+            if (correto - d > 0) pool.Add(correto - d);
+        }
+
+        for (int i = pool.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (pool[i], pool[j]) = (pool[j], pool[i]);
+        }
+
+        return pool.GetRange(0, Mathf.Min(quantidade, pool.Count));
     }
 
     // ── Implementações obrigatórias de TaskBase ──────────────────────────────

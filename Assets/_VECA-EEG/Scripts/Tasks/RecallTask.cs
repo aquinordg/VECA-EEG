@@ -19,9 +19,7 @@ public class RecallTask : TaskBase
     [Tooltip("Componente MemoryTask da cena — reutiliza seus estímulos")]
     public MemoryTask memoryTask;
 
-    [Header("Textos")]
-    public string instrucaoPreparacao = "Você se lembra das imagens do início?\nAgora tente recordá-las.";
-    public string instrucaoExecucao   = "Fixe o olhar na imagem que foi mostrada.";
+    private static readonly string[] Ordinais = { "primeira", "segunda", "terceira" };
 
     [Header("Tempos")]
     public float pausaEntreTrials = 1f;
@@ -36,9 +34,14 @@ public class RecallTask : TaskBase
         executionTime = 8f;
         if (string.IsNullOrWhiteSpace(taskDescription))
             taskDescription =
-                "TAREFA: MEMÓRIA TARDIA\n\n" +
+                "<b>TAREFA:</b> MEMÓRIA TARDIA\n\n" +
                 "Você se lembra das imagens que viu no início do teste?\n\n" +
-                "Para cada pergunta, fixe o olhar na imagem que foi apresentada lá atrás, entre as 4 opções na tela.";
+                "Cada rodada apresentará 4 opções — fixe o olhar na imagem\n" +
+                "que foi mostrada lá no começo.\n\n" +
+                "<b>Exemplo:</b> se você memorizou um Leão, fixe no Leão quando\n" +
+                "ele aparecer entre as opções.\n\n" +
+                "Esta tarefa tem 3 rodadas e vai mostrar, em sequência,\n" +
+                "a primeira, segunda e terceira imagens do início.";
     }
 
     // ── API para TestManager ─────────────────────────────────────────────────
@@ -68,9 +71,12 @@ public class RecallTask : TaskBase
 
     private IEnumerator ExecutarUmTrial(int idx)
     {
-        uiManager.SetTaskStatus($"Recall ({idx + 1}/3)");
+        uiManager.SetTaskStatus($"MEMÓRIA TARDIA ({idx + 1}/3)");
 
-        uiManager.ShowInstruction(instrucaoPreparacao);
+        string ordinal   = idx < Ordinais.Length ? Ordinais[idx] : $"{idx + 1}ª";
+        string instrucao = $"\nVocê se lembra da <b>{ordinal}</b> imagem mostrada no início?\nAgora tente lembrar e olhe para ela.";
+
+        uiManager.ShowInstruction(instrucao);
         yield return new WaitForSeconds(preparationTime);
 
         if (!ConfigurarAOIs(idx))
@@ -79,11 +85,8 @@ public class RecallTask : TaskBase
             yield break;
         }
 
-        string[] ordinals = { "primeira", "segunda", "terceira" };
-        string ordinal = idx < ordinals.Length ? ordinals[idx] : $"{idx + 1}ª";
-
         uiManager.ShowAOIs(true);
-        uiManager.ShowInstruction($"\n\nFixe o olhar na imagem que foi mostrada pela <b>{ordinal}</b> vez.");
+        uiManager.ShowInstruction(instrucao);
 
         AOI aoiCorreta = uiManager.GetCorrectAOI();
         eyeTracker.SetCurrentCorrectAOI(aoiCorreta);
@@ -104,7 +107,7 @@ public class RecallTask : TaskBase
         uiManager.ShowAOIs(false);
 
         bool correct = scores[idx] >= 0.5f;
-        uiManager.ShowFeedback(correct ? "Correto!" : "Incorreto.", correct);
+        uiManager.ShowFeedback($"{scores[idx] * 100f:F0}% do tempo na resposta correta", correct);
         yield return new WaitForSeconds(1.5f);
         uiManager.HideFeedback();
     }
@@ -172,5 +175,6 @@ public class RecallTask : TaskBase
     protected override void   SetupTrial()       => _ = ConfigurarAOIs(trialAtual);
     protected override float  CalculateScore()   => scores.Length > trialAtual ? scores[trialAtual] : 0f;
     protected override string GetFeatureName()   => "vr_recall";
-    protected override string GetInstructionText() => instrucaoExecucao;
+    protected override string GetInstructionText() =>
+        $"Você se lembra da <b>{(trialAtual < Ordinais.Length ? Ordinais[trialAtual] : $"{trialAtual + 1}ª")}</b> imagem mostrada no início?\nAgora tente lembrar e olhe para ela.";
 }

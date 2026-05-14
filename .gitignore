@@ -44,6 +44,7 @@ Desktop.ini
 
 # Results (dados dos participantes — não versionar)
 Assets/_VECA-EEG/Results/
+Results/
 
 # Configurações locais do Claude Code
 .claude/

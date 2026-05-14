@@ -28,11 +28,20 @@ public class UIManager : MonoBehaviour
     [Tooltip("Parent panel containing the intro text and Start button — hidden when the test begins")]
     public GameObject startScreenPanel;
 
+    [Tooltip("TMP element on the start screen that displays the participant ID — ex: 'ID: K7RN4A'")]
+    public TextMeshProUGUI participantIDText;
+
     [Tooltip("Text appended to every task description shown with the Got It button")]
-    public string gotItHint = "Para começar, olhe para o botão ENTENDIDO no canto da tela.";
+    public string gotItHint = "Para começar, olhe para o botão ENTENDIDO\nno canto da tela.";
 
     [Tooltip("TMP element that shows the intro text above the Start button")]
     public TextMeshProUGUI introText;
+
+    [Tooltip("Button that starts the test — shown/hidden together with the start screen")]
+    public Button startButton;
+
+    [Tooltip("Button shown at conclusion to restart — wire OnClick → UIManager.ConfirmRestart")]
+    public Button restartButton;
 
     [TextArea(4, 10)]
     [Tooltip("Introductory text shown on the start screen")]
@@ -52,6 +61,7 @@ public class UIManager : MonoBehaviour
     private AOI[]     aois;
     private Coroutine instructionCoroutine;
     private bool      _waitingForConfirmation;
+    private bool      _waitingForRestart;
 
     // ── Unity ────────────────────────────────────────────────────────────────
 
@@ -60,6 +70,7 @@ public class UIManager : MonoBehaviour
         if (feedbackPanel)    feedbackPanel.SetActive(false);
         if (instructionPanel) instructionPanel.SetActive(false);
         if (gotItButton)      gotItButton.gameObject.SetActive(false);
+        if (restartButton)    restartButton.gameObject.SetActive(false);
 
         if (aoiGrid != null)
             aois = aoiGrid.GetComponentsInChildren<AOI>(true);
@@ -67,18 +78,40 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        if (aoiGrid != null) aoiGrid.gameObject.SetActive(false);
-        if (introText != null) introText.text = introMessage;
+        if (aoiGrid != null)          aoiGrid.gameObject.SetActive(false);
+        if (introText != null)        introText.text = introMessage;
+        if (participantIDText != null) participantIDText.gameObject.SetActive(true);
     }
 
     // ── Start Screen ─────────────────────────────────────────────────────────
 
+    public void SetParticipantID(string id)
+    {
+        if (participantIDText != null)
+        {
+            participantIDText.text = $"ID: {id}";
+            participantIDText.gameObject.SetActive(true);
+        }
+    }
+
+    public void HideParticipantID()
+    {
+        if (participantIDText != null)
+            participantIDText.gameObject.SetActive(false);
+    }
+
+    public void ShowStartScreen()
+    {
+        if (startScreenPanel != null) startScreenPanel.SetActive(true);
+        else if (introText != null)   introText.gameObject.SetActive(true);
+        if (startButton != null)      startButton.gameObject.SetActive(true);
+    }
+
     public void HideStartScreen()
     {
-        if (startScreenPanel != null)
-            startScreenPanel.SetActive(false);
-        else if (introText != null)
-            introText.gameObject.SetActive(false);
+        if (startScreenPanel != null) startScreenPanel.SetActive(false);
+        else if (introText != null)   introText.gameObject.SetActive(false);
+        if (startButton != null)      startButton.gameObject.SetActive(false);
     }
 
     // ── Status & Timer ───────────────────────────────────────────────────────
@@ -155,6 +188,25 @@ public class UIManager : MonoBehaviour
     public void ConfirmUnderstood()
     {
         _waitingForConfirmation = false;
+    }
+
+    /// <summary>Shows the restart button and waits for the player to click it.</summary>
+    public IEnumerator WaitForRestart()
+    {
+        _waitingForRestart = true;
+        if (restartButton != null)
+            restartButton.gameObject.SetActive(true);
+
+        yield return new WaitUntil(() => !_waitingForRestart);
+
+        if (restartButton != null)
+            restartButton.gameObject.SetActive(false);
+    }
+
+    /// <summary>Called by the restart button's OnClick event in the scene.</summary>
+    public void ConfirmRestart()
+    {
+        _waitingForRestart = false;
     }
 
     // ── Feedback ─────────────────────────────────────────────────────────────
