@@ -57,7 +57,9 @@ public class MemoryTask : TaskBase
     // ── Estado interno ───────────────────────────────────────────────────────
 
     private int trialAtual;
-    private readonly float[] scores = new float[3];
+    private readonly float[]          scores          = new float[3];
+    private readonly System.DateTime[] _trialStartTimes = new System.DateTime[3];
+    private readonly System.DateTime[] _trialEndTimes   = new System.DateTime[3];
 
     // Arrays de runtime calculados em InicializarOrdem()
     private string[] _labelsAtivos;       // 3 rótulos na ordem desta sessão
@@ -85,9 +87,11 @@ public class MemoryTask : TaskBase
 
     // ── Getters públicos (usados pelo RecallTask) ─────────────────────────────
 
-    public string  GetTargetLabel(int idx)    => _labelsAtivos    != null && idx < _labelsAtivos.Length    ? _labelsAtivos[idx]    : null;
-    public Sprite  GetTargetSprite(int idx)   => _spritesAtivos   != null && idx < _spritesAtivos.Length   ? _spritesAtivos[idx]   : null;
-    public Sprite[] GetDistractorSprites()    => _distractoresAtivos;
+    public string   GetTargetLabel(int idx)    => _labelsAtivos    != null && idx < _labelsAtivos.Length    ? _labelsAtivos[idx]    : null;
+    public Sprite   GetTargetSprite(int idx)   => _spritesAtivos   != null && idx < _spritesAtivos.Length   ? _spritesAtivos[idx]   : null;
+    public Sprite[] GetDistractorSprites()     => _distractoresAtivos;
+    public (System.DateTime start, System.DateTime end) GetTrialTimes(int idx) =>
+        (_trialStartTimes[idx], _trialEndTimes[idx]);
 
     // ── API Pública ──────────────────────────────────────────────────────────
 
@@ -197,6 +201,8 @@ public class MemoryTask : TaskBase
         }
 
         eyeTracker.StopRecording();
+        _trialStartTimes[idx] = eyeTracker.RecordingStartTime;
+        _trialEndTimes[idx]   = eyeTracker.RecordingEndTime;
         uiManager.HideInstruction();
 
         scores[idx] = eyeTracker.GetCorrectAOIPercentage();

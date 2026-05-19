@@ -48,3 +48,19 @@ Results/
 
 # Configurações locais do Claude Code
 .claude/
+
+# Assets de terceiros (Asset Store — não redistribuir)
+Assets/Furniture_ges1/
+Assets/Furniture_ges1.meta
+Assets/Customizable Lights and Candles/
+Assets/Customizable Lights and Candles.meta
+Assets/Free Wood Door Pack/
+Assets/Free Wood Door Pack.meta
+
+# Artefatos do Asset Cleaner
+Assets/_DeletedAssetsBackup/
+Assets/_DeletedAssetsBackup.meta
+Assets/_Recovery/
+Assets/_Recovery.meta
+Assets/Editor/
+Assets/Editor.meta
