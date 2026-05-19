@@ -43,15 +43,17 @@ public class CalculationTask : TaskBase
     [Header("Tempos")]
     public float pausaEntreTrials = 1f;
 
-    private float[] scores;
-    private int     trialAtual;
+    private float[]           scores;
+    private System.DateTime[] _trialStartTimes;
+    private System.DateTime[] _trialEndTimes;
+    private int               trialAtual;
 
     private void Reset()
     {
         trials = new TrialCalculo[]
         {
             new TrialCalculo { problema = "100 − 7 =", opcoes = new[]{"93","92","94","97"}, respostaCorreta = "93", nomeFeature = "vr_calc4" },
-            new TrialCalculo { problema = "93 − 5 =",  opcoes = new[]{"86","85","87","84"}, respostaCorreta = "86", nomeFeature = "vr_calc5" },
+            new TrialCalculo { problema = "93 − 7 =",  opcoes = new[]{"86","85","87","84"}, respostaCorreta = "86", nomeFeature = "vr_calc5" },
             new TrialCalculo { problema = "86 − 7 =",  opcoes = new[]{"79","78","80","77"}, respostaCorreta = "79", nomeFeature = "vr_calc6" },
         };
     }
@@ -59,9 +61,11 @@ public class CalculationTask : TaskBase
     protected override void Awake()
     {
         base.Awake();
-        taskName      = "CÁLCULO";
-        executionTime = 8f;
-        scores        = new float[trials.Length];
+        taskName         = "CÁLCULO";
+        executionTime    = 8f;
+        scores           = new float[trials.Length];
+        _trialStartTimes = new System.DateTime[trials.Length];
+        _trialEndTimes   = new System.DateTime[trials.Length];
         if (string.IsNullOrWhiteSpace(taskDescription))
             taskDescription =
                 "<b>TAREFA:</b> CÁLCULO\n\n" +
@@ -87,6 +91,9 @@ public class CalculationTask : TaskBase
                 yield return new WaitForSeconds(pausaEntreTrials);
         }
     }
+
+    public (System.DateTime start, System.DateTime end) GetTrialTimes(int idx) =>
+        (_trialStartTimes[idx], _trialEndTimes[idx]);
 
     /// <summary>Score do trial idx (0–2) após conclusão (0–1).</summary>
     public float GetTrialScore(int idx) =>
@@ -123,6 +130,8 @@ public class CalculationTask : TaskBase
         }
 
         eyeTracker.StopRecording();
+        _trialStartTimes[idx] = eyeTracker.RecordingStartTime;
+        _trialEndTimes[idx]   = eyeTracker.RecordingEndTime;
         uiManager.HideInstruction();
         scores[idx] = eyeTracker.GetCorrectAOIPercentage();
 

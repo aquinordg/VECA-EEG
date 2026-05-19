@@ -53,8 +53,12 @@ public class EyeTracker : MonoBehaviour
 
     // ── API Pública ──────────────────────────────────────────────────────────
 
+    public System.DateTime RecordingStartTime { get; private set; }
+    public System.DateTime RecordingEndTime   { get; private set; }
+
     public void StartRecording()
     {
+        RecordingStartTime  = System.DateTime.Now;
         gravando            = true;
         tempoNaCorreta      = 0f;
         tempoTotalFixado    = 0f;
@@ -67,9 +71,10 @@ public class EyeTracker : MonoBehaviour
 
     public void StopRecording()
     {
-        gravando = false;
+        RecordingEndTime = System.DateTime.Now;
+        gravando         = false;
         DesativarDestaque(aoiAtual);
-        aoiAtual = null;
+        aoiAtual         = null;
     }
 
     /// <summary>

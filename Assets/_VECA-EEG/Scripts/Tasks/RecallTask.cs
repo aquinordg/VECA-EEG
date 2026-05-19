@@ -24,8 +24,10 @@ public class RecallTask : TaskBase
     [Header("Tempos")]
     public float pausaEntreTrials = 1f;
 
-    private float[] scores   = new float[3];
-    private int     trialAtual;
+    private float[]           scores           = new float[3];
+    private System.DateTime[] _trialStartTimes = new System.DateTime[3];
+    private System.DateTime[] _trialEndTimes   = new System.DateTime[3];
+    private int               trialAtual;
 
     protected override void Awake()
     {
@@ -58,6 +60,9 @@ public class RecallTask : TaskBase
                 yield return new WaitForSeconds(pausaEntreTrials);
         }
     }
+
+    public (System.DateTime start, System.DateTime end) GetTrialTimes(int idx) =>
+        (_trialStartTimes[idx], _trialEndTimes[idx]);
 
     /// <summary>Média dos 3 trials de recall (0–1).</summary>
     public float GetScore()
@@ -101,6 +106,8 @@ public class RecallTask : TaskBase
         }
 
         eyeTracker.StopRecording();
+        _trialStartTimes[idx] = eyeTracker.RecordingStartTime;
+        _trialEndTimes[idx]   = eyeTracker.RecordingEndTime;
         uiManager.HideInstruction();
         scores[idx] = eyeTracker.GetCorrectAOIPercentage();
 

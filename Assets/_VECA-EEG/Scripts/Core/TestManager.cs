@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using UnityEngine;
@@ -41,17 +42,14 @@ public class TestManager : MonoBehaviour
     public bool  autoStart         = false;
     public float pausaEntreTarefas = 1.5f;
 
-    private readonly Dictionary<string, float> features = new();
-
-    private static readonly string[] OrdemFeatures =
+    private struct TrialRecord
     {
-        "vr_mem8", "vr_mem9", "vr_mem10",
-        "vr_att",
-        "vr_abs",
-        "vr_calc4", "vr_calc5", "vr_calc6",
-        "vr_exec",
-        "vr_recall"
-    };
+        public string          feature;
+        public float           value;
+        public System.DateTime trialStart;
+        public System.DateTime trialEnd;
+    }
+    private readonly List<TrialRecord> records = new();
 
     public bool TestRunning { get; private set; }
 
@@ -83,7 +81,7 @@ public class TestManager : MonoBehaviour
     private IEnumerator SequenciaCompleta()
     {
         TestRunning = true;
-        features.Clear();
+        records.Clear();
 
         uiManager.HideStartScreen();
         uiManager.HideParticipantID();
@@ -138,11 +136,12 @@ public class TestManager : MonoBehaviour
 
         yield return StartCoroutine(memoryTask.RunAllTrials());
 
-        features["vr_mem8"]  = memoryTask.GetTrialScore(0);
-        features["vr_mem9"]  = memoryTask.GetTrialScore(1);
-        features["vr_mem10"] = memoryTask.GetTrialScore(2);
-
-        Debug.Log($"[Memória] {features["vr_mem8"]:F3} / {features["vr_mem9"]:F3} / {features["vr_mem10"]:F3}");
+        for (int i = 0; i < 3; i++)
+        {
+            var (s, e) = memoryTask.GetTrialTimes(i);
+            records.Add(new TrialRecord { feature = $"vr_mem{8 + i}", value = memoryTask.GetTrialScore(i), trialStart = s, trialEnd = e });
+        }
+        Debug.Log($"[Memória] {memoryTask.GetTrialScore(0):F3} / {memoryTask.GetTrialScore(1):F3} / {memoryTask.GetTrialScore(2):F3}");
     }
 
     /// <summary>Executa tarefas de um único trial (Atenção, Execução).</summary>
@@ -151,7 +150,7 @@ public class TestManager : MonoBehaviour
         if (tarefa == null)
         {
             Debug.LogWarning($"[TestManager] {nomeFeature} não atribuído — pulando.");
-            features[nomeFeature] = -1f;
+            records.Add(new TrialRecord { feature = nomeFeature, value = -1f });
             yield break;
         }
 
@@ -159,18 +158,32 @@ public class TestManager : MonoBehaviour
         yield return null;                                        // aguarda IsRunning = true
         yield return new WaitUntil(() => !tarefa.IsRunning);
 
-        features[nomeFeature] = tarefa.LastScore;
-        Debug.Log($"[{nomeFeature}] {features[nomeFeature]:F3}");
+        records.Add(new TrialRecord
+        {
+            feature    = nomeFeature,
+            value      = tarefa.LastScore,
+            trialStart = tarefa.TrialStartTime,
+            trialEnd   = tarefa.TrialEndTime
+        });
+        Debug.Log($"[{nomeFeature}] {tarefa.LastScore:F3}");
     }
 
     private IEnumerator ExecutarAbstracao()
     {
-        if (abstractionTask == null) { Debug.LogWarning("[TestManager] AbstractionTask não atribuído."); features["vr_abs"] = -1f; yield break; }
+        if (abstractionTask == null)
+        {
+            Debug.LogWarning("[TestManager] AbstractionTask não atribuído.");
+            records.Add(new TrialRecord { feature = "vr_abs", value = -1f });
+            yield break;
+        }
 
         yield return StartCoroutine(abstractionTask.RunAllTrials());
 
-        features["vr_abs"] = abstractionTask.GetScore();
-        Debug.Log($"[Abstração] {features["vr_abs"]:F3}");
+        float score  = abstractionTask.GetScore();
+        var   tStart = abstractionTask.GetTrialTimes(0).start;
+        var   tEnd   = abstractionTask.GetTrialTimes(abstractionTask.trials.Length - 1).end;
+        records.Add(new TrialRecord { feature = "vr_abs", value = score, trialStart = tStart, trialEnd = tEnd });
+        Debug.Log($"[Abstração] {score:F3}");
     }
 
     private IEnumerator ExecutarCalculo()
@@ -179,21 +192,30 @@ public class TestManager : MonoBehaviour
 
         yield return StartCoroutine(calculationTask.RunAllTrials());
 
-        features["vr_calc4"] = calculationTask.GetTrialScore(0);
-        features["vr_calc5"] = calculationTask.GetTrialScore(1);
-        features["vr_calc6"] = calculationTask.GetTrialScore(2);
-
-        Debug.Log($"[Cálculo] {features["vr_calc4"]:F3} / {features["vr_calc5"]:F3} / {features["vr_calc6"]:F3}");
+        for (int i = 0; i < 3; i++)
+        {
+            var (s, e) = calculationTask.GetTrialTimes(i);
+            records.Add(new TrialRecord { feature = $"vr_calc{4 + i}", value = calculationTask.GetTrialScore(i), trialStart = s, trialEnd = e });
+        }
+        Debug.Log($"[Cálculo] {calculationTask.GetTrialScore(0):F3} / {calculationTask.GetTrialScore(1):F3} / {calculationTask.GetTrialScore(2):F3}");
     }
 
     private IEnumerator ExecutarRecall()
     {
-        if (recallTask == null) { Debug.LogWarning("[TestManager] RecallTask não atribuído."); features["vr_recall"] = -1f; yield break; }
+        if (recallTask == null)
+        {
+            Debug.LogWarning("[TestManager] RecallTask não atribuído.");
+            records.Add(new TrialRecord { feature = "vr_recall", value = -1f });
+            yield break;
+        }
 
         yield return StartCoroutine(recallTask.RunAllTrials());
 
-        features["vr_recall"] = recallTask.GetScore();
-        Debug.Log($"[Recall] {features["vr_recall"]:F3}");
+        float score  = recallTask.GetScore();
+        var   tStart = recallTask.GetTrialTimes(0).start;
+        var   tEnd   = recallTask.GetTrialTimes(2).end;
+        records.Add(new TrialRecord { feature = "vr_recall", value = score, trialStart = tStart, trialEnd = tEnd });
+        Debug.Log($"[Recall] {score:F3}");
     }
 
     // ── Geração de ID ────────────────────────────────────────────────────────
@@ -211,19 +233,20 @@ public class TestManager : MonoBehaviour
 
     private void SalvarCSV()
     {
-        string pasta    = Path.Combine(Application.dataPath, "..", "Results");
+        string pasta = Path.Combine(Application.dataPath, "..", "Results");
         Directory.CreateDirectory(pasta);
 
-        string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        string arquivo   = Path.Combine(pasta, $"VECA_{participantID}_{timestamp}.csv");
+        string sessionTs = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        string arquivo   = Path.Combine(pasta, $"VECA_{participantID}_{sessionTs}.csv");
 
         var sb = new StringBuilder();
-        sb.AppendLine("participant_id,timestamp,feature,value");
+        sb.AppendLine("participant_id,trial_start,trial_end,feature,value");
 
-        foreach (string feat in OrdemFeatures)
+        foreach (var r in records)
         {
-            float val = features.TryGetValue(feat, out float v) ? v : -1f;
-            sb.AppendLine($"{participantID},{timestamp},{feat},{val:F4}");
+            string ts  = r.trialStart == default ? sessionTs : r.trialStart.ToString("yyyyMMdd_HHmmss.fff");
+            string te  = r.trialEnd   == default ? sessionTs : r.trialEnd.ToString("yyyyMMdd_HHmmss.fff");
+            sb.AppendLine($"{participantID},{ts},{te},{r.feature},{r.value.ToString("F4", CultureInfo.InvariantCulture)}");
         }
 
         File.WriteAllText(arquivo, sb.ToString(), Encoding.UTF8);

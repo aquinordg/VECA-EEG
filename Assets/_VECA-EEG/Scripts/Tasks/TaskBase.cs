@@ -26,6 +26,9 @@ public abstract class TaskBase : MonoBehaviour
     public bool  IsRunning { get; private set; }
     public float LastScore { get; private set; }
 
+    public System.DateTime TrialStartTime { get; protected set; }
+    public System.DateTime TrialEndTime   { get; protected set; }
+
     protected bool showInstructionDuringExecution = false;
 
     protected virtual void Awake()
@@ -112,6 +115,8 @@ public abstract class TaskBase : MonoBehaviour
         }
 
         eyeTracker.StopRecording();
+        TrialStartTime = eyeTracker.RecordingStartTime;
+        TrialEndTime   = eyeTracker.RecordingEndTime;
 
         if (showInstructionDuringExecution)
             uiManager.HideInstruction();

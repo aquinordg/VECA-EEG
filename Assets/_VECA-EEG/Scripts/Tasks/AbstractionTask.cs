@@ -53,15 +53,19 @@ public class AbstractionTask : TaskBase
     [Header("Tempos")]
     public float pausaEntreTrials = 1f;
 
-    private float[] scores;
-    private int     trialAtual;
+    private float[]           scores;
+    private System.DateTime[] _trialStartTimes;
+    private System.DateTime[] _trialEndTimes;
+    private int               trialAtual;
 
     protected override void Awake()
     {
         base.Awake();
-        taskName      = "ABSTRAÇÃO";
-        executionTime = 8f;
-        scores        = new float[trials.Length];
+        taskName         = "ABSTRAÇÃO";
+        executionTime    = 8f;
+        scores           = new float[trials.Length];
+        _trialStartTimes = new System.DateTime[trials.Length];
+        _trialEndTimes   = new System.DateTime[trials.Length];
         if (string.IsNullOrWhiteSpace(taskDescription))
             taskDescription =
                 "<b>TAREFA:</b> ABSTRAÇÃO\n\n" +
@@ -86,6 +90,9 @@ public class AbstractionTask : TaskBase
                 yield return new WaitForSeconds(pausaEntreTrials);
         }
     }
+
+    public (System.DateTime start, System.DateTime end) GetTrialTimes(int idx) =>
+        (_trialStartTimes[idx], _trialEndTimes[idx]);
 
     /// <summary>Média dos scores dos trials (0–1).</summary>
     public float GetScore()
@@ -128,6 +135,8 @@ public class AbstractionTask : TaskBase
         }
 
         eyeTracker.StopRecording();
+        _trialStartTimes[idx] = eyeTracker.RecordingStartTime;
+        _trialEndTimes[idx]   = eyeTracker.RecordingEndTime;
         uiManager.HideInstruction();
         scores[idx] = eyeTracker.GetCorrectAOIPercentage();
 
