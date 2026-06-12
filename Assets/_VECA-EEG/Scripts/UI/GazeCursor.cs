@@ -29,13 +29,11 @@ public class GazeCursor : MonoBehaviour
 
         if (eyeTracker.TryGetGazeRay(out origem, out direcao))
         {
-            // Gaze real do OpenXR
             if (cursorRenderer != null) cursorRenderer.enabled = true;
             PositionarCursor(origem, direcao);
         }
         else
         {
-            // Fallback: direção frontal da câmera (centro do campo de visão)
             if (cursorRenderer != null) cursorRenderer.enabled = true;
             origem  = vrCamera.transform.position;
             direcao = vrCamera.transform.forward;

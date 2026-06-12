@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
+using UnityEngine.XR;
 
 public class EyeTracker : MonoBehaviour
 {
@@ -16,8 +17,8 @@ public class EyeTracker : MonoBehaviour
     public Camera vrCamera;
 
     [Header("Fixation Parameters")]
-    [Tooltip("Deslocamento máximo em pixels de tela para contar como estático")]
-    public float limiarMovimento = 8f;
+    [Tooltip("Deslocamento angular máximo (graus) entre frames para contar como fixação")]
+    public float limiarAngularGraus = 1.5f;
     [Tooltip("Tempo mínimo parado (s) para iniciar acumulação")]
     public float duracaoMinimaFixacao = 0.12f;
 
@@ -29,7 +30,7 @@ public class EyeTracker : MonoBehaviour
     private AOI aoiCorreta;
 
     // Controle de fixação
-    private Vector2 posAnterior;
+    private Vector3 direcaoAnterior;
     private float tempoParado;
     private bool estaFixando;
     private bool fixacaoRegistrada;
@@ -52,18 +53,30 @@ public class EyeTracker : MonoBehaviour
 
     void Start()
     {
-        Debug.Log($"[EyeTracker] Eye Gaze controls encontrados: {gazeAction.controls.Count}");
+        if (vrCamera == null) vrCamera = Camera.main;
+
         if (gazeAction.controls.Count == 0)
-            Debug.LogWarning("[EyeTracker] Nenhum dispositivo Eye Gaze detectado. Verifique: " +
-                "1) Eye Gaze Interaction habilitado em Project Settings > OpenXR, " +
-                "2) SRanipal rodando na bandeja do Windows, " +
-                "3) Eye tracking calibrado no SteamVR.");
+            Debug.LogWarning("[EyeTracker] NENHUM Eye Gaze detectado. Verifique:\n" +
+                "  1) SRanipal rodando na bandeja do Windows\n" +
+                "  2) Eye Gaze Interaction habilitado em Project Settings > XR > OpenXR > Features\n" +
+                "  3) SteamVR ativo e headset acordado\n" +
+                "  4) Eye tracking calibrado no SteamVR Dashboard");
+
+        InputSystem.onDeviceChange += AoMudarDispositivo;
     }
 
     void OnDestroy()
     {
         gazeAction?.Disable();
         gazeAction?.Dispose();
+        InputSystem.onDeviceChange -= AoMudarDispositivo;
+    }
+
+    private void AoMudarDispositivo(UnityEngine.InputSystem.InputDevice device, InputDeviceChange change)
+    {
+        if (change == InputDeviceChange.Added || change == InputDeviceChange.Reconnected)
+            if (gazeAction.controls.Count == 0)
+                Debug.LogWarning("[EyeTracker] Dispositivo conectado mas Eye Gaze ainda não detectado.");
     }
 
     // ── API Pública ──────────────────────────────────────────────────────────
@@ -75,13 +88,15 @@ public class EyeTracker : MonoBehaviour
     {
         RecordingStartTime  = System.DateTime.Now;
         gravando            = true;
+        aoiAtual            = null;
         tempoNaCorreta      = 0f;
         tempoTotalFixado    = 0f;
         tempoTotalGravacao  = 0f;
         tempoParado         = 0f;
         estaFixando         = false;
         fixacaoRegistrada   = false;
-        posAnterior         = ObterPosicaoGaze();
+        if (!TryGetGazeRay(out _, out direcaoAnterior))
+            direcaoAnterior = vrCamera != null ? vrCamera.transform.forward : Vector3.forward;
     }
 
     public void StopRecording()
@@ -146,11 +161,13 @@ public class EyeTracker : MonoBehaviour
 
     private void ProcessarFixacao(AOI aoiDetectada)
     {
-        Vector2 posAtual = ObterPosicaoGaze();
-        float deslocamento = Vector2.Distance(posAtual, posAnterior);
-        posAnterior = posAtual;
+        if (!TryGetGazeRay(out _, out Vector3 direcaoAtual))
+            direcaoAtual = vrCamera != null ? vrCamera.transform.forward : Vector3.forward;
 
-        if (deslocamento <= limiarMovimento)
+        float angulo = Vector3.Angle(direcaoAtual, direcaoAnterior);
+        direcaoAnterior = direcaoAtual;
+
+        if (angulo <= limiarAngularGraus)
         {
             tempoParado += Time.deltaTime;
         }
@@ -242,7 +259,12 @@ public class EyeTracker : MonoBehaviour
         if (gazeAction != null && gazeAction.controls.Count > 0)
         {
             var pose = gazeAction.ReadValue<PoseState>();
-            if (pose.isTracked)
+
+            bool temDados = pose.isTracked ||
+                (pose.trackingState & (UnityEngine.XR.InputTrackingState.Position | UnityEngine.XR.InputTrackingState.Rotation))
+                == (UnityEngine.XR.InputTrackingState.Position | UnityEngine.XR.InputTrackingState.Rotation);
+
+            if (temDados)
             {
                 origem  = pose.position;
                 direcao = pose.rotation * Vector3.forward;
