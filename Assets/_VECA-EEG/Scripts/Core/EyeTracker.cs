@@ -3,32 +3,20 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 
-/// <summary>
-/// Simula eye-tracking usando o cursor do mouse.
-/// Detecta "fixação" quando o mouse permanece estático por
-/// <see cref="duracaoMinimaFixacao"/> segundos dentro de uma AOI.
-///
-/// FEATURE PRINCIPAL (artigo VECA):
-///   score = timeOnCorrectAOI / tempoTotalGravacao
-///
-/// CONFIGURAÇÃO NO INSPECTOR:
-///   - CanvasRaycaster → GraphicRaycaster do WorldCanvas
-///   - (ajuste os thresholds conforme necessário)
-///
-/// MIGRAÇÃO PARA VIVE PRO EYE:
-///   Substitua DetectarAOISobOlhar() para usar a API do SDK SRanipal/OpenXR
-///   e remova os campos de simulação por mouse. O resto do pipeline
-///   (acumulação, scoring) permanece igual.
-/// </summary>
 public class EyeTracker : MonoBehaviour
 {
     [Header("Raycasting no Canvas")]
     [Tooltip("GraphicRaycaster do WorldCanvas que contém as AOIs")]
     public GraphicRaycaster canvasRaycaster;
 
-    [Header("Parâmetros de Fixação (Simulação)")]
-    [Tooltip("Deslocamento máximo (px) para ainda contar como estático")]
+    [Header("Camera VR")]
+    [Tooltip("Main Camera do XR Origin (se vazio usa Camera.main)")]
+    public Camera vrCamera;
+
+    [Header("Fixation Parameters")]
+    [Tooltip("Deslocamento máximo em pixels de tela para contar como estático")]
     public float limiarMovimento = 8f;
     [Tooltip("Tempo mínimo parado (s) para iniciar acumulação")]
     public float duracaoMinimaFixacao = 0.12f;
@@ -37,19 +25,46 @@ public class EyeTracker : MonoBehaviour
 
     private bool gravando;
 
-    private AOI aoiAtual;          // AOI sob o olhar agora
-    private AOI aoiCorreta;        // AOI marcada como alvo pela tarefa
+    private AOI aoiAtual;
+    private AOI aoiCorreta;
 
     // Controle de fixação
-    private Vector2 posMouseAnterior;
+    private Vector2 posAnterior;
     private float tempoParado;
     private bool estaFixando;
-    private bool fixacaoRegistrada; // evita contar a mesma fixação duas vezes
+    private bool fixacaoRegistrada;
 
-    // Acumuladores (reiniciados a cada StartRecording)
+    // Acumuladores
     private float tempoNaCorreta;
-    private float tempoTotalFixado;  // soma de todo tempo fixado em qualquer AOI
+    private float tempoTotalFixado;
     private float tempoTotalGravacao;
+
+    // Eye tracking (OpenXR Eye Gaze Interaction)
+    private InputAction gazeAction;
+
+    // ── Ciclo de vida ────────────────────────────────────────────────────────
+
+    void Awake()
+    {
+        gazeAction = new InputAction("EyeGaze", binding: "<EyeGaze>/pose", expectedControlType: "Pose");
+        gazeAction.Enable();
+    }
+
+    void Start()
+    {
+        Debug.Log($"[EyeTracker] Eye Gaze controls encontrados: {gazeAction.controls.Count}");
+        if (gazeAction.controls.Count == 0)
+            Debug.LogWarning("[EyeTracker] Nenhum dispositivo Eye Gaze detectado. Verifique: " +
+                "1) Eye Gaze Interaction habilitado em Project Settings > OpenXR, " +
+                "2) SRanipal rodando na bandeja do Windows, " +
+                "3) Eye tracking calibrado no SteamVR.");
+    }
+
+    void OnDestroy()
+    {
+        gazeAction?.Disable();
+        gazeAction?.Dispose();
+    }
 
     // ── API Pública ──────────────────────────────────────────────────────────
 
@@ -66,7 +81,7 @@ public class EyeTracker : MonoBehaviour
         tempoParado         = 0f;
         estaFixando         = false;
         fixacaoRegistrada   = false;
-        posMouseAnterior    = PosicaoMouse();
+        posAnterior         = ObterPosicaoGaze();
     }
 
     public void StopRecording()
@@ -77,37 +92,21 @@ public class EyeTracker : MonoBehaviour
         aoiAtual         = null;
     }
 
-    /// <summary>
-    /// Define qual AOI é a resposta correta para o trial atual.
-    /// Deve ser chamado ANTES de StartRecording() ou logo após.
-    /// </summary>
-    public void SetCurrentCorrectAOI(AOI aoi)
-    {
-        aoiCorreta = aoi;
-    }
+    public void SetCurrentCorrectAOI(AOI aoi) => aoiCorreta = aoi;
 
     // ── Métricas ─────────────────────────────────────────────────────────────
 
-    /// <summary>Segundos totais que o olhar ficou sobre a AOI correta.</summary>
-    public float GetTimeOnCorrectAOI() => tempoNaCorreta;
+    public float GetTimeOnCorrectAOI()    => tempoNaCorreta;
+    public float GetTotalFixatedTime()    => tempoTotalFixado;
+    public float GetTotalRecordingTime()  => tempoTotalGravacao;
 
-    /// <summary>Segundos totais de fixação em qualquer AOI.</summary>
-    public float GetTotalFixatedTime() => tempoTotalFixado;
-
-    /// <summary>Segundos totais da gravação (desde StartRecording).</summary>
-    public float GetTotalRecordingTime() => tempoTotalGravacao;
-
-    /// <summary>
-    /// Feature do artigo: % do tempo de gravação gasto fixando na AOI correta.
-    /// Retorna valor entre 0 e 1.
-    /// </summary>
     public float GetCorrectAOIPercentage()
     {
         if (tempoTotalGravacao <= 0f) return 0f;
         return Mathf.Clamp01(tempoNaCorreta / tempoTotalGravacao);
     }
 
-    // ── Loop Principal ───────────────────────────────────────────────────────
+    // ── Loop principal ───────────────────────────────────────────────────────
 
     void Update()
     {
@@ -122,17 +121,13 @@ public class EyeTracker : MonoBehaviour
 
     // ── Detecção de Gaze ─────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Retorna a AOI que está sob o cursor do mouse (simulação de gaze).
-    /// Usa o GraphicRaycaster do WorldCanvas para respeitar a hierarquia UI.
-    /// </summary>
     private AOI DetectarAOISobOlhar()
     {
         if (canvasRaycaster == null || EventSystem.current == null) return null;
 
         var pointer = new PointerEventData(EventSystem.current)
         {
-            position = PosicaoMouse()
+            position = ObterPosicaoGaze()
         };
 
         var resultados = new List<RaycastResult>();
@@ -140,7 +135,6 @@ public class EyeTracker : MonoBehaviour
 
         foreach (var r in resultados)
         {
-            // Procura AOI no próprio objeto ou nos pais
             var aoi = r.gameObject.GetComponent<AOI>()
                    ?? r.gameObject.GetComponentInParent<AOI>();
             if (aoi != null) return aoi;
@@ -152,33 +146,29 @@ public class EyeTracker : MonoBehaviour
 
     private void ProcessarFixacao(AOI aoiDetectada)
     {
-        Vector2 posAtual = PosicaoMouse();
-        float deslocamento = Vector2.Distance(posAtual, posMouseAnterior);
-        posMouseAnterior = posAtual;
+        Vector2 posAtual = ObterPosicaoGaze();
+        float deslocamento = Vector2.Distance(posAtual, posAnterior);
+        posAnterior = posAtual;
 
-        bool mouseParado = deslocamento <= limiarMovimento;
-
-        if (mouseParado)
+        if (deslocamento <= limiarMovimento)
         {
             tempoParado += Time.deltaTime;
         }
         else
         {
-            // Movimento quebra a fixação
-            tempoParado         = 0f;
-            estaFixando         = false;
-            fixacaoRegistrada   = false;
+            tempoParado       = 0f;
+            estaFixando       = false;
+            fixacaoRegistrada = false;
         }
 
         bool atingiuLimiar = tempoParado >= duracaoMinimaFixacao;
 
         if (atingiuLimiar && aoiDetectada != null)
         {
-            // Transição: começa a fixar nesta AOI
             if (!estaFixando || aoiDetectada != aoiAtual)
             {
                 estaFixando       = true;
-                fixacaoRegistrada = false; // nova fixação, registrar uma vez
+                fixacaoRegistrada = false;
             }
 
             float dt = Time.deltaTime;
@@ -186,18 +176,15 @@ public class EyeTracker : MonoBehaviour
             aoiDetectada.wasLookedAt        = true;
             tempoTotalFixado               += dt;
 
-            // Registrar início da primeira fixação
             if (aoiDetectada.firstFixationTime < 0f)
                 aoiDetectada.firstFixationTime = tempoTotalGravacao;
 
-            // Contar evento de fixação (uma única vez por bloco contínuo)
             if (!fixacaoRegistrada)
             {
                 aoiDetectada.fixationCount++;
                 fixacaoRegistrada = true;
             }
 
-            // Acumular na AOI correta
             if (aoiCorreta != null && aoiDetectada == aoiCorreta)
                 tempoNaCorreta += dt;
         }
@@ -213,10 +200,8 @@ public class EyeTracker : MonoBehaviour
     private void AtualizarDestaqueVisual(AOI aoiDetectada)
     {
         if (aoiDetectada == aoiAtual) return;
-
         DesativarDestaque(aoiAtual);
         aoiAtual = aoiDetectada;
-
         if (aoiAtual != null) aoiAtual.Highlight();
     }
 
@@ -225,10 +210,48 @@ public class EyeTracker : MonoBehaviour
         if (aoi != null) aoi.Unhighlight();
     }
 
-    // Centraliza a leitura de posição para facilitar a migração para Vive Pro Eye
-    private static Vector2 PosicaoMouse()
+    // ── Posição de Gaze ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Retorna a posição em screen-space para onde o olhar aponta.
+    /// Usa OpenXR Eye Gaze quando disponível; fallback para mouse no editor.
+    /// </summary>
+    public Vector2 ObterPosicaoGaze()
     {
+        Camera cam = vrCamera != null ? vrCamera : Camera.main;
+        if (cam == null) return Vector2.zero;
+
+        if (TryGetGazeRay(out Vector3 origem, out Vector3 direcao))
+        {
+            Vector3 pontoMundo = origem + direcao * 10f;
+            return cam.WorldToScreenPoint(pontoMundo);
+        }
+
+        // Fallback: mouse (editor sem dispositivo)
         var mouse = Mouse.current;
         return mouse != null ? mouse.position.ReadValue() : Vector2.zero;
+    }
+
+    /// <summary>
+    /// Obtém o raio de gaze do OpenXR Eye Gaze Interaction.
+    /// Requer que "Eye Gaze Interaction" esteja habilitado em
+    /// Project Settings > XR Plug-in Management > OpenXR > Features.
+    /// </summary>
+    public bool TryGetGazeRay(out Vector3 origem, out Vector3 direcao)
+    {
+        if (gazeAction != null && gazeAction.controls.Count > 0)
+        {
+            var pose = gazeAction.ReadValue<PoseState>();
+            if (pose.isTracked)
+            {
+                origem  = pose.position;
+                direcao = pose.rotation * Vector3.forward;
+                return true;
+            }
+        }
+
+        origem  = Vector3.zero;
+        direcao = Vector3.forward;
+        return false;
     }
 }
