@@ -33,8 +33,8 @@ public abstract class TaskBase : MonoBehaviour
 
     protected virtual void Awake()
     {
-        uiManager  = FindFirstObjectByType<UIManager>();
-        eyeTracker = FindFirstObjectByType<EyeTracker>();
+        uiManager  = FindAnyObjectByType<UIManager>();
+        eyeTracker = FindAnyObjectByType<EyeTracker>();
     }
 
     // ── Entry point ──────────────────────────────────────────────────────────
@@ -97,9 +97,7 @@ public abstract class TaskBase : MonoBehaviour
 
     protected virtual IEnumerator ExecutionPhase()
     {
-        AOI correctAOI = uiManager.GetCorrectAOI();
-        if (correctAOI != null)
-            eyeTracker.SetCurrentCorrectAOI(correctAOI);
+        eyeTracker.SetCurrentCorrectAOI(uiManager.GetCorrectAOI());
 
         if (showInstructionDuringExecution)
             uiManager.ShowInstruction(GetInstructionText());
