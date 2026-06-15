@@ -83,35 +83,44 @@ public class TestManager : MonoBehaviour
         TestRunning = true;
         records.Clear();
 
+        LSLMarkerStream.Instance?.SendMarker($"session_start,{participantID}");
+
         uiManager.HideStartScreen();
         uiManager.HideParticipantID();
         uiManager.ShowInstruction("\n\nPrepare-se para começar.", 3f);
         yield return new WaitForSeconds(3f);
 
         // ── 1. MEMÓRIA ────────────────────────────────────────────────────────
+        eyeTracker.CurrentTrialLabel = "Memoria";
         yield return StartCoroutine(ExecutarMemoria());
         yield return new WaitForSeconds(pausaEntreTarefas);
 
         // ── 2. ATENÇÃO ────────────────────────────────────────────────────────
+        eyeTracker.CurrentTrialLabel = "Atencao";
         yield return StartCoroutine(ExecutarTarefaSimples(attentionTask, "vr_att"));
         yield return new WaitForSeconds(pausaEntreTarefas);
 
         // ── 3. ABSTRAÇÃO ──────────────────────────────────────────────────────
+        eyeTracker.CurrentTrialLabel = "Abstracao";
         yield return StartCoroutine(ExecutarAbstracao());
         yield return new WaitForSeconds(pausaEntreTarefas);
 
         // ── 4-6. CÁLCULO ──────────────────────────────────────────────────────
+        eyeTracker.CurrentTrialLabel = "Calculo";
         yield return StartCoroutine(ExecutarCalculo());
         yield return new WaitForSeconds(pausaEntreTarefas);
 
         // ── 7. EXECUÇÃO ───────────────────────────────────────────────────────
+        eyeTracker.CurrentTrialLabel = "Execucao";
         yield return StartCoroutine(ExecutarTarefaSimples(executionTask, "vr_exec"));
         yield return new WaitForSeconds(pausaEntreTarefas);
 
         // ── 8. RECALL TARDIO ──────────────────────────────────────────────────
+        eyeTracker.CurrentTrialLabel = "Recall";
         yield return StartCoroutine(ExecutarRecall());
 
         // ── ENCERRAMENTO ──────────────────────────────────────────────────────
+        LSLMarkerStream.Instance?.SendMarker($"session_end,{participantID}");
         SalvarCSV();
         uiManager.SetTaskStatus("Concluído");
         uiManager.SetParticipantID(participantID);
