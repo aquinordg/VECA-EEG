@@ -84,9 +84,13 @@ public class EyeTracker : MonoBehaviour
     public System.DateTime RecordingStartTime { get; private set; }
     public System.DateTime RecordingEndTime   { get; private set; }
 
+    /// <summary>Label enviado nos marcadores LSL trial_start/trial_end. Deve ser definido antes de StartRecording().</summary>
+    public string CurrentTrialLabel { get; set; } = "";
+
     public void StartRecording()
     {
         RecordingStartTime  = System.DateTime.Now;
+        LSLMarkerStream.Instance?.SendMarker($"trial_start,{CurrentTrialLabel}");
         gravando            = true;
         aoiAtual            = null;
         tempoNaCorreta      = 0f;
@@ -102,6 +106,7 @@ public class EyeTracker : MonoBehaviour
     public void StopRecording()
     {
         RecordingEndTime = System.DateTime.Now;
+        LSLMarkerStream.Instance?.SendMarker($"trial_end,{CurrentTrialLabel}");
         gravando         = false;
         DesativarDestaque(aoiAtual);
         aoiAtual         = null;

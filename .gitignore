@@ -49,14 +49,6 @@ Results/
 # Configurações locais do Claude Code
 .claude/
 
-# Assets de terceiros (Asset Store — não redistribuir)
-Assets/Furniture_ges1/
-Assets/Furniture_ges1.meta
-Assets/Customizable Lights and Candles/
-Assets/Customizable Lights and Candles.meta
-Assets/Free Wood Door Pack/
-Assets/Free Wood Door Pack.meta
-
 # Arquivos soltos na raiz
 *.png
 *.jpg
@@ -69,3 +61,53 @@ Assets/_Recovery/
 Assets/_Recovery.meta
 Assets/Editor/
 Assets/Editor.meta
+
+# Free Wood Door Pack — manter apenas Door_2 (usado na SampleScene)
+Assets/Free Wood Door Pack/Scene/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_1/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_3/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_4/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_5/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_6/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_7/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_8/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_9/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_10/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_11/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_12/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_13/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_14/
+Assets/Free Wood Door Pack/Prefab/Wood/Door_15/
+Assets/Free Wood Door Pack/Materials/Door_1_Materials/
+Assets/Free Wood Door Pack/Materials/Door_3_Materials/
+Assets/Free Wood Door Pack/Materials/Door_4_Materials/
+Assets/Free Wood Door Pack/Materials/Door_5_Materials/
+Assets/Free Wood Door Pack/Materials/Door_6_Materials/
+Assets/Free Wood Door Pack/Materials/Door_7_Materials/
+Assets/Free Wood Door Pack/Materials/Door_8_Materials/
+Assets/Free Wood Door Pack/Materials/Door_9_Materials/
+Assets/Free Wood Door Pack/Materials/Door_10_Materials/
+Assets/Free Wood Door Pack/Materials/Door_11_Materials/
+Assets/Free Wood Door Pack/Materials/Door_12_Materials/
+Assets/Free Wood Door Pack/Materials/Door_13_Materials/
+Assets/Free Wood Door Pack/Materials/Door_14_Materials/
+Assets/Free Wood Door Pack/Materials/Door_15_Materials/
+Assets/Free Wood Door Pack/Texture/Door_1/
+Assets/Free Wood Door Pack/Texture/Door_3/
+Assets/Free Wood Door Pack/Texture/Door_4/
+Assets/Free Wood Door Pack/Texture/Door_5/
+Assets/Free Wood Door Pack/Texture/Door_6/
+Assets/Free Wood Door Pack/Texture/Door_7/
+Assets/Free Wood Door Pack/Texture/Door_8/
+Assets/Free Wood Door Pack/Texture/Door_9/
+Assets/Free Wood Door Pack/Texture/Door_10/
+Assets/Free Wood Door Pack/Texture/Door_11/
+Assets/Free Wood Door Pack/Texture/Door_12/
+Assets/Free Wood Door Pack/Texture/Door_13/
+Assets/Free Wood Door Pack/Texture/Door_14/
+Assets/Free Wood Door Pack/Texture/Door_15/
+Assets/Free Wood Door Pack/Texture/Materials/
+Assets/Free Wood Door Pack/Mesh/Knob_1.FBX
+Assets/Free Wood Door Pack/Mesh/Knob_1.FBX.meta
+Assets/Free Wood Door Pack/Mesh/Knob_3.FBX
+Assets/Free Wood Door Pack/Mesh/Knob_3.FBX.meta
