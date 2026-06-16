@@ -49,10 +49,10 @@ Results/
 # Configurações locais do Claude Code
 .claude/
 
-# Arquivos soltos na raiz
-*.png
-*.jpg
-*.jpeg
+# Arquivos soltos na raiz (apenas no diretório raiz)
+/*.png
+/*.jpg
+/*.jpeg
 
 # Artefatos do Asset Cleaner
 Assets/_DeletedAssetsBackup/
