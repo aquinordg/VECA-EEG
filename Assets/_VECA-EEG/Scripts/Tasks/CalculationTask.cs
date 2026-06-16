@@ -104,18 +104,16 @@ public class CalculationTask : TaskBase
     private IEnumerator ExecutarUmTrial(int idx)
     {
         var trial = trials[idx];
-        uiManager.SetTaskStatus($"CÁLCULO ({idx + 1}/{trials.Length})");
+        uiManager.SetTaskStatus($"{Loc?.taskCalculation ?? taskName} ({idx + 1}/{trials.Length})");
 
-        // Instrução com o problema durante preparação
-        uiManager.ShowInstruction($"Olhe para a resposta correta.\n\n<b>{trial.problema}</b>");
+        string prompt = $"{Loc?.calculationPrompt ?? "Olhe para a resposta correta."}\n\n<b>{trial.problema}</b>";
+        uiManager.ShowInstruction(prompt);
         yield return new WaitForSeconds(preparationTime);
 
-        // AOIs com as opções numéricas
         uiManager.SetupAOIs(trial.opcoes, trial.respostaCorreta);
         uiManager.ShowAOIs(true);
 
-        // Problema permanece visível durante execução
-        uiManager.ShowInstruction($"Olhe para a resposta correta.\n\n<b>{trial.problema}</b>");
+        uiManager.ShowInstruction(prompt);
 
         AOI aoiCorreta = uiManager.GetCorrectAOI();
         eyeTracker.SetCurrentCorrectAOI(aoiCorreta);
@@ -138,7 +136,7 @@ public class CalculationTask : TaskBase
         uiManager.ShowAOIs(false);
 
         bool correct = scores[idx] >= 0.5f;
-        uiManager.ShowFeedback($"{scores[idx] * 100f:F0}% do tempo na resposta correta", correct);
+        uiManager.ShowFeedback(FormatFeedback(scores[idx]), correct);
         yield return new WaitForSeconds(1.5f);
         uiManager.HideFeedback();
     }
@@ -199,7 +197,9 @@ public class CalculationTask : TaskBase
             uiManager.SetupAOIs(trials[trialAtual].opcoes, trials[trialAtual].respostaCorreta);
     }
 
-    protected override float  CalculateScore()    => scores.Length > trialAtual ? scores[trialAtual] : 0f;
-    protected override string GetFeatureName()    => trialAtual < trials.Length ? trials[trialAtual].nomeFeature : "vr_calc";
+    protected override string GetTaskName()    => Loc?.taskCalculation ?? taskName;
+    protected override string GetDescription() => Loc?.descCalculation ?? taskDescription;
+    protected override float  CalculateScore() => scores.Length > trialAtual ? scores[trialAtual] : 0f;
+    protected override string GetFeatureName() => trialAtual < trials.Length ? trials[trialAtual].nomeFeature : "vr_calc";
     protected override string GetInstructionText() => trials.Length > trialAtual ? trials[trialAtual].problema : "";
 }

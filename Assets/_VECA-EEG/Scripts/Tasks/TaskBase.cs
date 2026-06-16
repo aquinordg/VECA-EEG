@@ -31,10 +31,21 @@ public abstract class TaskBase : MonoBehaviour
 
     protected bool showInstructionDuringExecution = false;
 
+    protected LocalizationConfig Loc => TestManager.Instance?.locConfig;
+
     protected virtual void Awake()
     {
         uiManager  = FindAnyObjectByType<UIManager>();
         eyeTracker = FindAnyObjectByType<EyeTracker>();
+    }
+
+    protected virtual string GetTaskName()   => taskName;
+    protected virtual string GetDescription() => taskDescription;
+
+    protected string FormatFeedback(float pct)
+    {
+        string tmpl = Loc?.feedbackTemplate ?? "{0}% do tempo na resposta correta";
+        return string.Format(tmpl, $"{pct * 100f:F0}");
     }
 
     // ── Entry point ──────────────────────────────────────────────────────────
@@ -51,7 +62,7 @@ public abstract class TaskBase : MonoBehaviour
     {
         IsRunning = true;
         OnTaskStarted?.Invoke();
-        uiManager.SetTaskStatus(taskName);
+        uiManager.SetTaskStatus(GetTaskName());
 
         yield return StartCoroutine(IntroPhase());
         yield return StartCoroutine(PreparationPhase());
@@ -75,9 +86,10 @@ public abstract class TaskBase : MonoBehaviour
     /// </summary>
     protected IEnumerator IntroPhase()
     {
-        if (string.IsNullOrWhiteSpace(taskDescription)) yield break;
-        uiManager.SetTaskStatus(taskName);
-        yield return StartCoroutine(uiManager.WaitForConfirmation(taskDescription));
+        string desc = GetDescription();
+        if (string.IsNullOrWhiteSpace(desc)) yield break;
+        uiManager.SetTaskStatus(GetTaskName());
+        yield return StartCoroutine(uiManager.WaitForConfirmation(desc));
     }
 
     protected virtual IEnumerator PreparationPhase()
@@ -123,7 +135,7 @@ public abstract class TaskBase : MonoBehaviour
 
         float pct    = eyeTracker.GetCorrectAOIPercentage();
         bool correct = pct >= 0.5f;
-        uiManager.ShowFeedback($"{pct * 100f:F0}% do tempo na resposta correta", correct);
+        uiManager.ShowFeedback(FormatFeedback(pct), correct);
         yield return new WaitForSeconds(1.5f);
         uiManager.HideFeedback();
     }

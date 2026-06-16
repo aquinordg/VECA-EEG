@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d, type: 3}
+  m_Name: Localization_PTBR
+  m_EditorClassIdentifier:
+  buttonStart: INICIAR TESTE
+  buttonGotIt: ENTENDIDO
+  buttonRestart: "NOVA AVALIA\xC7\xC3O"
+  gotItHint: "Para come\xE7ar, olhe para o bot\xE3o ENTENDIDO\nno canto da tela."
+  introMessage: "Bem-vindo \xE0 Avalia\xE7\xE3o Cognitiva VECA-EEG.\n\nEste teste avalia fun\xE7\xF5es cognitivas como mem\xF3ria, aten\xE7\xE3o, abstra\xE7\xE3o, c\xE1lculo e execu\xE7\xE3o de comandos.\n\nEm cada etapa, leia a instru\xE7\xE3o com aten\xE7\xE3o e fixe o olhar na resposta correta entre as op\xE7\xF5es apresentadas na tela.\n\nQuando estiver pronto para come\xE7ar, pressione <b>INICIAR TESTE</b>."
+  statusCompleted: "Conclu\xEDdo"
+  prepareMessage: "\n\nPrepare-se para come\xE7ar."
+  completionMessage: "Avalia\xE7\xE3o conclu\xEDda!\n\nObrigado pela participa\xE7\xE3o.\nResultados salvos."
+  feedbackTemplate: "{0}% do tempo na resposta correta"
+  taskMemory: "MEM\xD3RIA"
+  taskAttention: "ATEN\xC7\xC3O"
+  taskAbstraction: "ABSTRA\xC7\xC3O"
+  taskCalculation: "C\xC1LCULO"
+  taskExecution: "EXECU\xC7\xC3O"
+  taskRecall: "MEM\xD3RIA TARDIA"
+  descMemory: ""
+  descAttention: ""
+  descAbstraction: ""
+  descCalculation: ""
+  descExecution: ""
+  descRecall: ""
+  memoryEncodePrompt: "Memorize esta imagem"
+  memoryRecallPrompt: "\n\nFixe o olhar na resposta correta."
+  memoryTargetLabels:
+  - "Le\xE3o"
+  - Rinoceronte
+  - Camelo
+  memoryDistractorLabels:
+  - Elefante
+  - Zebra
+  - Girafa
+  - Tigre
+  - Lobo
+  attentionInstrucao: "\n\n\nOlhe para o ANIMAL SELVAGEM."
+  attentionOpcoes:
+  - "Le\xE3o"
+  - Vaca
+  - Porco
+  - Galinha
+  attentionRespostaCorreta: "Le\xE3o"
+  abstractionComplement: "O que t\xEAm em comum?"
+  abstractionTrials:
+  - par: Trem e Bicicleta
+    opcoes:
+    - Transporte
+    - Animal
+    - Cor
+    - Alimento
+    respostaCorreta: Transporte
+  - par: "Rel\xF3gio e R\xE9gua"
+    opcoes:
+    - "Medi\xE7\xE3o"
+    - Ferramenta
+    - Brinquedo
+    - Roupa
+    respostaCorreta: "Medi\xE7\xE3o"
+  calculationPrompt: "Olhe para a resposta correta."
+  executionInstrucao: "\n\nOlhe para o n\xFAmero que vem depois do 7 na sequ\xEAncia: 8 - 7 - ?"
+  executionOpcoes:
+  - "6"
+  - "4"
+  - "7"
+  - "5"
+  executionRespostaCorreta: "6"
+  recallOrdinals:
+  - primeira
+  - segunda
+  - terceira
+  recallPromptTemplate: "\nVoc\xEA se lembra da <b>{0}</b> imagem mostrada no in\xEDcio?\nAgora tente lembrar e olhe para ela."

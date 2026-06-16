@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d, type: 3}
+  m_Name: Localization_EN
+  m_EditorClassIdentifier:
+  buttonStart: START TEST
+  buttonGotIt: GOT IT
+  buttonRestart: NEW ASSESSMENT
+  gotItHint: "To continue, look at the CONTINUE button\nin the corner of the screen."
+  introMessage: "Welcome to the VECA-EEG Cognitive Assessment.\n\nThis test evaluates cognitive functions such as memory, attention, abstraction, calculation, and command execution.\n\nFor each task, read the instruction carefully and fix your gaze on the correct answer among the options on screen.\n\nWhen you are ready to begin, press <b>START TEST</b>."
+  statusCompleted: Done
+  prepareMessage: "\n\nGet ready to begin."
+  completionMessage: "Assessment complete!\n\nThank you for your participation.\nResults saved."
+  feedbackTemplate: "{0}% of time on correct answer"
+  taskMemory: MEMORY
+  taskAttention: ATTENTION
+  taskAbstraction: ABSTRACTION
+  taskCalculation: CALCULATION
+  taskExecution: EXECUTION
+  taskRecall: DELAYED RECALL
+  descMemory: "<b>TASK:</b> MEMORY\n\nYou will see 3 images, one at a time, for a few seconds.\nAfter a brief interval, the same image will reappear mixed\nwith 3 other options — fix your gaze on it.\n\n<b>Example:</b> if you saw a Lion, look at the Lion when it\nappears among the 4 options.\n\nThis task has 3 rounds."
+  descAttention: "<b>TASK:</b> ATTENTION\n\nAn instruction will appear on screen.\nRead it carefully and fix your gaze on the correct item\namong the 4 options.\n\n<b>Example:</b> if the instruction says \"Look at the toy\",\nlook at the image of the toy.\n\nThis task has 1 round."
+  descAbstraction: "<b>TASK:</b> ABSTRACTION\n\nTwo concepts will appear in the instruction.\nAmong the 4 options, fix your gaze on the category that best\ndescribes what they have in common.\n\n<b>Example:</b> \"House and Bridge\" → look at \"Structures\".\n\nThis task has 2 rounds."
+  descCalculation: "<b>TASK:</b> CALCULATION\n\nA subtraction problem will appear in the instruction.\nAmong the 4 options, fix your gaze on the correct answer.\n\n<b>Example:</b> \"10 − 8 =\" → look at the number 2.\n\nThis task has 3 rounds."
+  descExecution: "<b>TASK:</b> EXECUTION\n\nA command will appear in the instruction.\nRead it carefully and fix your gaze on the correct option\namong the 4 shown on screen.\n\n<b>Example:</b> \"Look at the number that comes after 2:\n1 - 2 - ?\" → look at number 3."
+  descRecall: "<b>TASK:</b> DELAYED RECALL\n\nDo you remember the images you saw at the beginning?\n\nEach round will show 4 options — fix your gaze on the image\nthat was shown at the start.\n\n<b>Example:</b> if you memorized a Lion, look at the Lion when\nit appears among the options.\n\nThis task has 3 rounds and will show, in order,\nthe first, second, and third images from the beginning."
+  memoryEncodePrompt: Memorize this image
+  memoryRecallPrompt: "\n\nFix your gaze on the correct answer."
+  memoryTargetLabels:
+  - Lion
+  - Rhinoceros
+  - Camel
+  memoryDistractorLabels:
+  - Elephant
+  - Zebra
+  - Giraffe
+  - Tiger
+  - Wolf
+  attentionInstrucao: "\n\n\nLook at the WILD ANIMAL."
+  attentionOpcoes:
+  - Lion
+  - Cow
+  - Pig
+  - Chicken
+  attentionRespostaCorreta: Lion
+  abstractionComplement: What do they have in common?
+  abstractionTrials:
+  - par: Train and Bicycle
+    opcoes:
+    - Transportation
+    - Animal
+    - Color
+    - Food
+    respostaCorreta: Transportation
+  - par: Clock and Ruler
+    opcoes:
+    - Measurement
+    - Tool
+    - Toy
+    - Clothing
+    respostaCorreta: Measurement
+  calculationPrompt: Look at the correct answer.
+  executionInstrucao: "\n\nLook at the number that comes after 7 in the sequence: 8 - 7 - ?"
+  executionOpcoes:
+  - "6"
+  - "4"
+  - "7"
+  - "5"
+  executionRespostaCorreta: "6"
+  recallOrdinals:
+  - first
+  - second
+  - third
+  recallPromptTemplate: "\nDo you remember the <b>{0}</b> image shown at the beginning?\nNow try to recall and look at it."
