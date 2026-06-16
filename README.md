@@ -8,12 +8,12 @@ Available in **English** and **Portuguese (PT-BR)**.
 
 ## Download
 
-Pre-built Windows releases (no Unity required):
+Pre-built Windows releases (no Unity required). LSL synchronization is included — no additional setup needed.
 
 | Version | Language | Link |
 |---|---|---|
-| v1.0.0 | English | [VECA-EEG_EN.zip](https://github.com/aquinordg/VECA-EEG/releases/tag/v1.0.0) |
-| v1.0.0 | Português | [VECA-EEG_PTBR.zip](https://github.com/aquinordg/VECA-EEG/releases/tag/v1.0.0) |
+| v1.0.0 | English | [Build_EN.zip](https://github.com/aquinordg/VECA-EEG/releases/tag/v1.0.0) |
+| v1.0.0 | Português | [Build_PTBR.zip](https://github.com/aquinordg/VECA-EEG/releases/tag/v1.0.0) |
 
 ---
 
@@ -73,9 +73,9 @@ All third-party free assets are included. No manual Asset Store imports required
 
 VECA-EEG sends LSL markers via a `"VECA-Markers"` outlet for millisecond-accurate alignment with EEG recordings.
 
-**Pre-built release:** place `lsl.dll` (liblsl v1.17, [download here](https://github.com/sccn/liblsl/releases)) in the same folder as the `.exe`.
+**Pre-built release:** `lsl.dll` (liblsl v1.17) is already included — no additional setup needed.
 
-**Source build:** place `lsl.dll` at `Assets/Plugins/lsl.dll`.
+**Source build:** place `lsl.dll` (liblsl v1.17, [download here](https://github.com/sccn/liblsl/releases)) at `Assets/Plugins/lsl.dll`.
 
 In your EEG software (e.g., BrainVision Recorder + LiveAmp LSL Connector), subscribe to the `"VECA-Markers"` inlet. The application degrades silently if `lsl.dll` is absent — eye tracking and CSV export work without it.
 
