@@ -19,20 +19,29 @@ Pre-built Windows releases (no Unity required):
 
 ## Requirements
 
-### Hardware
-| Component | Notes |
+### Pre-built releases
+
+| Component | Requirement |
 |---|---|
-| VR headset with eye tracking | HTC Vive Pro Eye tested; any OpenXR Eye Gaze Interaction-compatible headset |
-| EEG amplifier (optional) | Any LSL-compatible amplifier (e.g., BrainProducts LiveAmp, OpenBCI Cyton) |
+| OS | Windows 10/11 x64 |
+| VR headset | **Required** — must support OpenXR Eye Gaze Interaction |
+| OpenXR runtime | SteamVR (recommended) or Windows Mixed Reality |
+| EEG amplifier | Optional — any LSL-compatible device |
+
+> **Compatible headsets (eye tracking required):** HTC Vive Pro Eye, Varjo XR-3/4, HP Reverb G2 Omnicept, Pico 4 Enterprise, and any other headset supporting the OpenXR Eye Gaze Interaction extension.
+>
+> Headsets **without** eye tracking will render the VR environment but gaze-based AOI selection will not function — the assessment cannot be used clinically in this configuration.
+>
+> The application requires an active OpenXR runtime (SteamVR) to launch and **cannot run on a standard PC without a VR headset**.
 
 ### Software (source build)
+
 | Component | Version |
 |---|---|
 | Unity | 6000.4.4f1 |
 | SteamVR | latest |
 
-> Eye tracking uses **OpenXR Eye Gaze Interaction** (`<EyeGaze>/pose`).  
-> Testing without a headset is possible using the **XR Device Simulator** (included via XR Interaction Toolkit samples).
+> Testing without a physical headset is possible in the Unity Editor using the **XR Device Simulator** (included via XR Interaction Toolkit samples). This simulator is not available in standalone builds.
 
 ---
 
@@ -52,11 +61,11 @@ All third-party free assets are included. No manual Asset Store imports required
 
 ---
 
-## Hardware setup (Vive Pro Eye)
+## Hardware setup
 
-1. Start **SteamVR** and confirm the headset is awake
-2. In Unity: **Project Settings → XR Plug-in Management → OpenXR → Features** → enable **Eye Gaze Interaction**
-3. Calibrate eye tracking via the SteamVR Dashboard before each session
+1. Start **SteamVR** and confirm the headset is detected and awake
+2. Calibrate eye tracking via the headset's native calibration tool before each session
+3. *(Source build only)* In Unity: **Project Settings → XR Plug-in Management → OpenXR → Features** → confirm **Eye Gaze Interaction** is enabled
 
 ---
 
@@ -64,9 +73,11 @@ All third-party free assets are included. No manual Asset Store imports required
 
 VECA-EEG sends LSL markers via a `"VECA-Markers"` outlet for millisecond-accurate alignment with EEG recordings.
 
-1. Place `lsl.dll` (liblsl v1.17, [download here](https://github.com/sccn/liblsl/releases)) at `Assets/Plugins/lsl.dll`
-2. In your EEG software (e.g., BrainVision Recorder + LiveAmp LSL Connector), subscribe to the `"VECA-Markers"` inlet
-3. The application degrades silently if `lsl.dll` is absent — eye tracking and CSV export work without it
+**Pre-built release:** place `lsl.dll` (liblsl v1.17, [download here](https://github.com/sccn/liblsl/releases)) in the same folder as the `.exe`.
+
+**Source build:** place `lsl.dll` at `Assets/Plugins/lsl.dll`.
+
+In your EEG software (e.g., BrainVision Recorder + LiveAmp LSL Connector), subscribe to the `"VECA-Markers"` inlet. The application degrades silently if `lsl.dll` is absent — eye tracking and CSV export work without it.
 
 **Marker format:**
 
