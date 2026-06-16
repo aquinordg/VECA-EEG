@@ -51,10 +51,14 @@ public class UIManager : MonoBehaviour
         "Em cada etapa, leia a instrução com atenção e fixe o olhar na resposta correta entre as opções apresentadas na tela.\n\n" +
         "Quando estiver pronto para começar, pressione <b>INICIAR TESTE</b>.";
 
+    [Header("Feedback")]
+    [Tooltip("Desmarque para desativar a tela de feedback ao final de cada trial")]
+    public bool showTrialFeedback = true;
+
     [Header("Feedback Colors")]
-    public Color correctColor  = new Color(0.10f, 0.80f, 0.20f);
+    public Color correctColor   = new Color(0.10f, 0.80f, 0.20f);
     public Color incorrectColor = new Color(0.90f, 0.15f, 0.15f);
-    public Color neutralColor  = new Color(0.20f, 0.60f, 1.00f);
+    public Color neutralColor   = new Color(0.20f, 0.60f, 1.00f);
 
     // ── Internal state ───────────────────────────────────────────────────────
 
@@ -229,6 +233,7 @@ public class UIManager : MonoBehaviour
 
     public void ShowFeedback(string message, bool? correct = null)
     {
+        if (!showTrialFeedback) return;
         if (feedbackPanel) feedbackPanel.SetActive(true);
         if (feedbackText)
         {

@@ -1281,6 +1281,7 @@ MonoBehaviour:
   executionTask: {fileID: 751815241}
   recallTask: {fileID: 1942482382}
   participantID: P001
+  locConfig: {fileID: 11400000, guid: 8b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e, type: 2}
   autoStart: 0
   pausaEntreTarefas: 1.5
 --- !u!4 &288957808
@@ -2103,6 +2104,7 @@ MonoBehaviour:
     c\xE1lculo e execu\xE7\xE3o de comandos.\n\nEm cada etapa, leia a instru\xE7\xE3o
     com aten\xE7\xE3o e fixe o olhar na resposta correta entre as op\xE7\xF5es apresentadas
     na tela.\n\nQuando estiver pronto para come\xE7ar, pressione <b>INICIAR TESTE</b>."
+  showTrialFeedback: 0
   correctColor: {r: 0.1, g: 0.8, b: 0.2, a: 1}
   incorrectColor: {r: 0.9, g: 0.15, b: 0.15, a: 1}
   neutralColor: {r: 0.2, g: 0.6, b: 1, a: 1}
@@ -2352,6 +2354,8 @@ MonoBehaviour:
   eyeTracker: {fileID: 776776938}
   dwellTime: 1.5
   fillImage: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  gazeColor: {r: 1, g: 0.92, b: 0.016, a: 1}
 --- !u!1 &529386821
 GameObject:
   m_ObjectHideFlags: 0
@@ -3073,7 +3077,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EyeTracker
   canvasRaycaster: {fileID: 127132609}
   vrCamera: {fileID: 1160411112}
-  limiarMovimento: 8
+  limiarAngularGraus: 1.5
   duracaoMinimaFixacao: 0.12
 --- !u!4 &776776939
 Transform:
@@ -5680,7 +5684,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1480229456
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6097,6 +6101,8 @@ MonoBehaviour:
   eyeTracker: {fileID: 776776938}
   dwellTime: 1.5
   fillImage: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  gazeColor: {r: 1, g: 0.92, b: 0.016, a: 1}
 --- !u!114 &1521567689 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8937775169708646420, guid: 09b9d17b06dbed741a2a92d60e867cd5, type: 3}
@@ -6384,6 +6390,8 @@ MonoBehaviour:
   eyeTracker: {fileID: 776776938}
   dwellTime: 1.5
   fillImage: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  gazeColor: {r: 1, g: 0.92, b: 0.016, a: 1}
 --- !u!4 &1606161023 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400000, guid: c7b7ca10b0f0c8746a0a8d66fb10fa57, type: 3}

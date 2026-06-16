@@ -57,7 +57,7 @@ public class AttentionTask : TaskBase
 
     protected override IEnumerator PreparationPhase()
     {
-        uiManager.ShowInstruction(instrucao);
+        uiManager.ShowInstruction(GetInstructionText());
         float elapsed = 0f;
         while (elapsed < preparationTime)
         {
@@ -81,7 +81,7 @@ public class AttentionTask : TaskBase
     }
 
     protected override string GetTaskName()        => Loc?.taskAttention   ?? taskName;
-    protected override string GetDescription()     => Loc?.descAttention   ?? taskDescription;
+    protected override string GetDescription()     => L(Loc?.descAttention, taskDescription);
     protected override float  CalculateScore()     => eyeTracker.GetCorrectAOIPercentage();
     protected override string GetFeatureName()     => "vr_att";
     protected override string GetInstructionText() => Loc?.attentionInstrucao ?? instrucao;

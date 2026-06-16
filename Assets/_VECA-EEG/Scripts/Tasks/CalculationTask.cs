@@ -198,7 +198,7 @@ public class CalculationTask : TaskBase
     }
 
     protected override string GetTaskName()    => Loc?.taskCalculation ?? taskName;
-    protected override string GetDescription() => Loc?.descCalculation ?? taskDescription;
+    protected override string GetDescription() => L(Loc?.descCalculation, taskDescription);
     protected override float  CalculateScore() => scores.Length > trialAtual ? scores[trialAtual] : 0f;
     protected override string GetFeatureName() => trialAtual < trials.Length ? trials[trialAtual].nomeFeature : "vr_calc";
     protected override string GetInstructionText() => trials.Length > trialAtual ? trials[trialAtual].problema : "";

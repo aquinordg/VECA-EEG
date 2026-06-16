@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   buttonStart: INICIAR TESTE
   buttonGotIt: ENTENDIDO
-  buttonRestart: "NOVA AVALIA\xC7\xC3O"
+  buttonRestart: NOVO TESTE
   gotItHint: "Para come\xE7ar, olhe para o bot\xE3o ENTENDIDO\nno canto da tela."
   introMessage: "Bem-vindo \xE0 Avalia\xE7\xE3o Cognitiva VECA-EEG.\n\nEste teste avalia fun\xE7\xF5es cognitivas como mem\xF3ria, aten\xE7\xE3o, abstra\xE7\xE3o, c\xE1lculo e execu\xE7\xE3o de comandos.\n\nEm cada etapa, leia a instru\xE7\xE3o com aten\xE7\xE3o e fixe o olhar na resposta correta entre as op\xE7\xF5es apresentadas na tela.\n\nQuando estiver pronto para come\xE7ar, pressione <b>INICIAR TESTE</b>."
   statusCompleted: "Conclu\xEDdo"

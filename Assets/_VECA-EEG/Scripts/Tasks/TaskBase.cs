@@ -33,6 +33,9 @@ public abstract class TaskBase : MonoBehaviour
 
     protected LocalizationConfig Loc => TestManager.Instance?.locConfig;
 
+    protected static string L(string locValue, string fallback) =>
+        string.IsNullOrWhiteSpace(locValue) ? fallback : locValue;
+
     protected virtual void Awake()
     {
         uiManager  = FindAnyObjectByType<UIManager>();
@@ -47,6 +50,7 @@ public abstract class TaskBase : MonoBehaviour
         string tmpl = Loc?.feedbackTemplate ?? "{0}% do tempo na resposta correta";
         return string.Format(tmpl, $"{pct * 100f:F0}");
     }
+
 
     // ── Entry point ──────────────────────────────────────────────────────────
 
