@@ -194,7 +194,7 @@ public class RecallTask : TaskBase
 
     protected override void   SetupTrial()        => _ = ConfigurarAOIs(trialAtual);
     protected override string GetTaskName()       => Loc?.taskRecall  ?? taskName;
-    protected override string GetDescription()    => Loc?.descRecall  ?? taskDescription;
+    protected override string GetDescription()    => L(Loc?.descRecall, taskDescription);
     protected override float  CalculateScore()    => scores.Length > trialAtual ? scores[trialAtual] : 0f;
     protected override string GetFeatureName()    => "vr_recall";
     protected override string GetInstructionText() => GetRecallPrompt(trialAtual);

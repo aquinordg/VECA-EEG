@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   buttonStart: START TEST
   buttonGotIt: GOT IT
-  buttonRestart: NEW ASSESSMENT
-  gotItHint: "To continue, look at the CONTINUE button\nin the corner of the screen."
+  buttonRestart: NEW TEST
+  gotItHint: "To continue, look at the GOT IT button\nin the corner of the screen."
   introMessage: "Welcome to the VECA-EEG Cognitive Assessment.\n\nThis test evaluates cognitive functions such as memory, attention, abstraction, calculation, and command execution.\n\nFor each task, read the instruction carefully and fix your gaze on the correct answer among the options on screen.\n\nWhen you are ready to begin, press <b>START TEST</b>."
   statusCompleted: Done
   prepareMessage: "\n\nGet ready to begin."

@@ -163,7 +163,7 @@ public class AbstractionTask : TaskBase
     }
 
     protected override string GetTaskName()    => Loc?.taskAbstraction ?? taskName;
-    protected override string GetDescription() => Loc?.descAbstraction ?? taskDescription;
+    protected override string GetDescription() => L(Loc?.descAbstraction, taskDescription);
     protected override float  CalculateScore() => scores.Length > trialAtual ? scores[trialAtual] : 0f;
     protected override string GetFeatureName() => "vr_abs";
     protected override string GetInstructionText()

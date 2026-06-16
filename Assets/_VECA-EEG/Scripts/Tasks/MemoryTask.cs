@@ -289,7 +289,7 @@ public class MemoryTask : TaskBase
     protected override void   SetupTrial()      => ConfigurarAOIsDeRecall(trialAtual);
     protected override float  CalculateScore()  => eyeTracker.GetCorrectAOIPercentage();
     protected override string GetTaskName()    => Loc?.taskMemory ?? taskName;
-    protected override string GetDescription() => Loc?.descMemory ?? taskDescription;
+    protected override string GetDescription() => L(Loc?.descMemory, taskDescription);
     protected override string GetFeatureName() => trialAtual < nomesFeature.Length ? nomesFeature[trialAtual] : "vr_mem";
     protected override string GetInstructionText() => $"Onde estava: <b>{_labelsAtivos[trialAtual]}</b>?";
 }
