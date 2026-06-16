@@ -46,8 +46,11 @@ Desktop.ini
 Assets/_VECA-EEG/Results/
 Results/
 
-# Configurações locais do Claude Code
+# Configurações locais do Claude Code (exceto skills do projeto)
 .claude/
+!.claude/
+!.claude/commands/
+!.claude/commands/**
 
 # Arquivos soltos na raiz (apenas no diretório raiz)
 /*.png
