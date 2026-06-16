@@ -75,12 +75,14 @@ public class AttentionTask : TaskBase
         if (usarSprites)
             uiManager.SetupAOIs(opcaoSprites, spriteCorreto);
         else
-            uiManager.SetupAOIs(opcoes, respostaCorreta);
+            uiManager.SetupAOIs(Loc?.attentionOpcoes ?? opcoes, Loc?.attentionRespostaCorreta ?? respostaCorreta);
 
         uiManager.ShowAOIs(true);
     }
 
-    protected override float  CalculateScore()    => eyeTracker.GetCorrectAOIPercentage();
-    protected override string GetFeatureName()    => "vr_att";
-    protected override string GetInstructionText() => instrucao;
+    protected override string GetTaskName()        => Loc?.taskAttention   ?? taskName;
+    protected override string GetDescription()     => Loc?.descAttention   ?? taskDescription;
+    protected override float  CalculateScore()     => eyeTracker.GetCorrectAOIPercentage();
+    protected override string GetFeatureName()     => "vr_att";
+    protected override string GetInstructionText() => Loc?.attentionInstrucao ?? instrucao;
 }

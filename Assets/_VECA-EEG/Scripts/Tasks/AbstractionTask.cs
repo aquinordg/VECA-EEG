@@ -107,19 +107,22 @@ public class AbstractionTask : TaskBase
 
     private IEnumerator ExecutarUmTrial(int idx)
     {
-        var trial = trials[idx];
-        uiManager.SetTaskStatus($"ABSTRAÇÃO ({idx + 1}/{trials.Length})");
+        var    trial      = trials[idx];
+        var    locTrial   = Loc?.abstractionTrials?.Length > idx ? Loc.abstractionTrials[idx] : null;
+        string par        = locTrial?.par             ?? trial.par;
+        string[] opcoes   = locTrial?.opcoes          ?? trial.opcoes;
+        string resposta   = locTrial?.respostaCorreta ?? trial.respostaCorreta;
+        string complement = Loc?.abstractionComplement ?? complementoInstrucao;
 
-        // Instrução com o par durante a preparação
-        string textoInstrucao = $"<b>{trial.par}</b>\n{complementoInstrucao}";
+        uiManager.SetTaskStatus($"{Loc?.taskAbstraction ?? taskName} ({idx + 1}/{trials.Length})");
+
+        string textoInstrucao = $"<b>{par}</b>\n{complement}";
         uiManager.ShowInstruction(textoInstrucao);
         yield return new WaitForSeconds(preparationTime);
 
-        // AOIs com as categorias
-        uiManager.SetupAOIs(trial.opcoes, trial.respostaCorreta);
+        uiManager.SetupAOIs(opcoes, resposta);
         uiManager.ShowAOIs(true);
 
-        // Instrução permanece visível durante execução
         uiManager.ShowInstruction(textoInstrucao);
 
         AOI aoiCorreta = uiManager.GetCorrectAOI();
@@ -143,7 +146,7 @@ public class AbstractionTask : TaskBase
         uiManager.ShowAOIs(false);
 
         bool correct = scores[idx] >= 0.5f;
-        uiManager.ShowFeedback($"{scores[idx] * 100f:F0}% do tempo na resposta correta", correct);
+        uiManager.ShowFeedback(FormatFeedback(scores[idx]), correct);
         yield return new WaitForSeconds(1.5f);
         uiManager.HideFeedback();
     }
@@ -152,12 +155,23 @@ public class AbstractionTask : TaskBase
 
     protected override void SetupTrial()
     {
-        if (trials.Length > trialAtual)
-            uiManager.SetupAOIs(trials[trialAtual].opcoes, trials[trialAtual].respostaCorreta);
+        if (trials.Length <= trialAtual) return;
+        var    locTrial = Loc?.abstractionTrials?.Length > trialAtual ? Loc.abstractionTrials[trialAtual] : null;
+        string[] opcoes = locTrial?.opcoes          ?? trials[trialAtual].opcoes;
+        string   resp   = locTrial?.respostaCorreta ?? trials[trialAtual].respostaCorreta;
+        uiManager.SetupAOIs(opcoes, resp);
     }
 
-    protected override float  CalculateScore()    => scores.Length > trialAtual ? scores[trialAtual] : 0f;
-    protected override string GetFeatureName()    => "vr_abs";
-    protected override string GetInstructionText() =>
-        trials.Length > trialAtual ? $"{trials[trialAtual].par}\n{complementoInstrucao}" : "";
+    protected override string GetTaskName()    => Loc?.taskAbstraction ?? taskName;
+    protected override string GetDescription() => Loc?.descAbstraction ?? taskDescription;
+    protected override float  CalculateScore() => scores.Length > trialAtual ? scores[trialAtual] : 0f;
+    protected override string GetFeatureName() => "vr_abs";
+    protected override string GetInstructionText()
+    {
+        if (trials.Length <= trialAtual) return "";
+        var    locTrial   = Loc?.abstractionTrials?.Length > trialAtual ? Loc.abstractionTrials[trialAtual] : null;
+        string par        = locTrial?.par ?? trials[trialAtual].par;
+        string complement = Loc?.abstractionComplement ?? complementoInstrucao;
+        return $"{par}\n{complement}";
+    }
 }

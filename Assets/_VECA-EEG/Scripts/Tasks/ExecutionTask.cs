@@ -43,11 +43,13 @@ public class ExecutionTask : TaskBase
 
     protected override void SetupTrial()
     {
-        uiManager.SetupAOIs(opcoes, respostaCorreta);
+        uiManager.SetupAOIs(Loc?.executionOpcoes ?? opcoes, Loc?.executionRespostaCorreta ?? respostaCorreta);
         uiManager.ShowAOIs(true);
     }
 
-    protected override float  CalculateScore()    => eyeTracker.GetCorrectAOIPercentage();
-    protected override string GetFeatureName()    => "vr_exec";
-    protected override string GetInstructionText() => instrucao;
+    protected override string GetTaskName()        => Loc?.taskExecution    ?? taskName;
+    protected override string GetDescription()     => Loc?.descExecution    ?? taskDescription;
+    protected override float  CalculateScore()     => eyeTracker.GetCorrectAOIPercentage();
+    protected override string GetFeatureName()     => "vr_exec";
+    protected override string GetInstructionText() => Loc?.executionInstrucao ?? instrucao;
 }

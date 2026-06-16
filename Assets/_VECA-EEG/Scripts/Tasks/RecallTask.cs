@@ -19,7 +19,21 @@ public class RecallTask : TaskBase
     [Tooltip("Componente MemoryTask da cena — reutiliza seus estímulos")]
     public MemoryTask memoryTask;
 
-    private static readonly string[] Ordinais = { "primeira", "segunda", "terceira" };
+    private static readonly string[] _ordinaisFallback = { "primeira", "segunda", "terceira" };
+
+    private string GetOrdinal(int idx)
+    {
+        var ords = Loc?.recallOrdinals;
+        if (ords != null && idx < ords.Length) return ords[idx];
+        return idx < _ordinaisFallback.Length ? _ordinaisFallback[idx] : $"{idx + 1}ª";
+    }
+
+    private string GetRecallPrompt(int idx)
+    {
+        string tmpl = Loc?.recallPromptTemplate ??
+            "\nVocê se lembra da <b>{0}</b> imagem mostrada no início?\nAgora tente lembrar e olhe para ela.";
+        return string.Format(tmpl, GetOrdinal(idx));
+    }
 
     [Header("Tempos")]
     public float pausaEntreTrials = 1f;
@@ -76,10 +90,9 @@ public class RecallTask : TaskBase
 
     private IEnumerator ExecutarUmTrial(int idx)
     {
-        uiManager.SetTaskStatus($"MEMÓRIA TARDIA ({idx + 1}/3)");
+        uiManager.SetTaskStatus($"{Loc?.taskRecall ?? taskName} ({idx + 1}/3)");
 
-        string ordinal   = idx < Ordinais.Length ? Ordinais[idx] : $"{idx + 1}ª";
-        string instrucao = $"\nVocê se lembra da <b>{ordinal}</b> imagem mostrada no início?\nAgora tente lembrar e olhe para ela.";
+        string instrucao = GetRecallPrompt(idx);
 
         uiManager.ShowInstruction(instrucao);
         yield return new WaitForSeconds(preparationTime);
@@ -114,7 +127,7 @@ public class RecallTask : TaskBase
         uiManager.ShowAOIs(false);
 
         bool correct = scores[idx] >= 0.5f;
-        uiManager.ShowFeedback($"{scores[idx] * 100f:F0}% do tempo na resposta correta", correct);
+        uiManager.ShowFeedback(FormatFeedback(scores[idx]), correct);
         yield return new WaitForSeconds(1.5f);
         uiManager.HideFeedback();
     }
@@ -179,9 +192,10 @@ public class RecallTask : TaskBase
 
     // ── Implementações obrigatórias de TaskBase ──────────────────────────────
 
-    protected override void   SetupTrial()       => _ = ConfigurarAOIs(trialAtual);
-    protected override float  CalculateScore()   => scores.Length > trialAtual ? scores[trialAtual] : 0f;
-    protected override string GetFeatureName()   => "vr_recall";
-    protected override string GetInstructionText() =>
-        $"Você se lembra da <b>{(trialAtual < Ordinais.Length ? Ordinais[trialAtual] : $"{trialAtual + 1}ª")}</b> imagem mostrada no início?\nAgora tente lembrar e olhe para ela.";
+    protected override void   SetupTrial()        => _ = ConfigurarAOIs(trialAtual);
+    protected override string GetTaskName()       => Loc?.taskRecall  ?? taskName;
+    protected override string GetDescription()    => Loc?.descRecall  ?? taskDescription;
+    protected override float  CalculateScore()    => scores.Length > trialAtual ? scores[trialAtual] : 0f;
+    protected override string GetFeatureName()    => "vr_recall";
+    protected override string GetInstructionText() => GetRecallPrompt(trialAtual);
 }

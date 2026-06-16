@@ -18,6 +18,7 @@ using UnityEngine;
 ///
 /// CSV salvo em: &lt;projeto&gt;/Results/VECA_&lt;ID&gt;_&lt;timestamp&gt;.csv
 /// </summary>
+[DefaultExecutionOrder(-10)]
 public class TestManager : MonoBehaviour
 {
     public static TestManager Instance { get; private set; }
@@ -37,6 +38,10 @@ public class TestManager : MonoBehaviour
     [Header("Participante")]
     [Tooltip("Preenchido automaticamente com ID aleatório ao iniciar o teste")]
     public string participantID = "";
+
+    [Header("Localização")]
+    [Tooltip("Asset com todos os textos de UI. Null = PT-BR padrão.")]
+    public LocalizationConfig locConfig;
 
     [Header("Opções")]
     public bool  autoStart         = false;
@@ -87,7 +92,7 @@ public class TestManager : MonoBehaviour
 
         uiManager.HideStartScreen();
         uiManager.HideParticipantID();
-        uiManager.ShowInstruction("\n\nPrepare-se para começar.", 3f);
+        uiManager.ShowInstruction(locConfig?.prepareMessage ?? "\n\nPrepare-se para começar.", 3f);
         yield return new WaitForSeconds(3f);
 
         // ── 1. MEMÓRIA ────────────────────────────────────────────────────────
@@ -122,10 +127,10 @@ public class TestManager : MonoBehaviour
         // ── ENCERRAMENTO ──────────────────────────────────────────────────────
         LSLMarkerStream.Instance?.SendMarker($"session_end,{participantID}");
         SalvarCSV();
-        uiManager.SetTaskStatus("Concluído");
+        uiManager.SetTaskStatus(locConfig?.statusCompleted ?? "Concluído");
         uiManager.SetParticipantID(participantID);
         uiManager.ShowInstruction(
-            "Avaliação concluída!\n\nObrigado pela participação.\nResultados salvos.", 0f);
+            locConfig?.completionMessage ?? "Avaliação concluída!\n\nObrigado pela participação.\nResultados salvos.", 0f);
         TestRunning = false;
 
         yield return StartCoroutine(uiManager.WaitForRestart());

@@ -78,9 +78,25 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        if (aoiGrid != null)          aoiGrid.gameObject.SetActive(false);
-        if (introText != null)        introText.text = introMessage;
+        var loc = TestManager.Instance?.locConfig;
+        if (loc != null)
+        {
+            gotItHint    = loc.gotItHint;
+            introMessage = loc.introMessage;
+            SetButtonLabel(startButton,   loc.buttonStart);
+            SetButtonLabel(gotItButton,   loc.buttonGotIt);
+            SetButtonLabel(restartButton, loc.buttonRestart);
+        }
+        if (aoiGrid != null)           aoiGrid.gameObject.SetActive(false);
+        if (introText != null)         introText.text = introMessage;
         if (participantIDText != null) participantIDText.gameObject.SetActive(true);
+    }
+
+    private static void SetButtonLabel(Button btn, string label)
+    {
+        if (btn == null || string.IsNullOrEmpty(label)) return;
+        var tmp = btn.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        if (tmp != null) tmp.text = label;
     }
 
     // ── Start Screen ─────────────────────────────────────────────────────────

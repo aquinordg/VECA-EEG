@@ -97,6 +97,11 @@ public class MemoryTask : TaskBase
 
     public IEnumerator RunAllTrials()
     {
+        if (Loc?.memoryTargetLabels?.Length >= 3)
+            targetLabels = Loc.memoryTargetLabels;
+        if (Loc?.memoryDistractorLabels?.Length > 0)
+            distractorLabels = Loc.memoryDistractorLabels;
+
         yield return StartCoroutine(IntroPhase());
 
         InicializarOrdem(embaralhar: aleatorio);
@@ -167,12 +172,12 @@ public class MemoryTask : TaskBase
 
     private IEnumerator ExecutarUmTrial(int idx)
     {
-        uiManager.SetTaskStatus($"MEMÓRIA ({idx + 1}/3)");
+        uiManager.SetTaskStatus($"{Loc?.taskMemory ?? taskName} ({idx + 1}/3)");
 
         // ── FASE 1: ENCODING ─────────────────────────────────────────────────
         MostrarEncodingDisplay(idx, true);
         uiManager.ShowAOIs(false);
-        uiManager.ShowInstruction("Memorize esta imagem", encodingTime);
+        uiManager.ShowInstruction(Loc?.memoryEncodePrompt ?? "Memorize esta imagem", encodingTime);
 
         yield return new WaitForSeconds(encodingTime);
 
@@ -186,7 +191,7 @@ public class MemoryTask : TaskBase
 
         // ── FASE 3: RECALL ───────────────────────────────────────────────────
         ConfigurarAOIsDeRecall(idx);
-        uiManager.ShowInstruction("\n\nFixe o olhar na resposta correta.");
+        uiManager.ShowInstruction(Loc?.memoryRecallPrompt ?? "\n\nFixe o olhar na resposta correta.");
 
         AOI aoiCorreta = uiManager.GetCorrectAOI();
         eyeTracker.SetCurrentCorrectAOI(aoiCorreta);
@@ -210,7 +215,7 @@ public class MemoryTask : TaskBase
         uiManager.ShowAOIs(false);
 
         bool acertou = scores[idx] >= 0.5f;
-        uiManager.ShowFeedback($"{scores[idx] * 100f:F0}% do tempo na resposta correta", acertou);
+        uiManager.ShowFeedback(FormatFeedback(scores[idx]), acertou);
 
         yield return new WaitForSeconds(1.5f);
         uiManager.HideFeedback();
@@ -283,6 +288,8 @@ public class MemoryTask : TaskBase
 
     protected override void   SetupTrial()      => ConfigurarAOIsDeRecall(trialAtual);
     protected override float  CalculateScore()  => eyeTracker.GetCorrectAOIPercentage();
-    protected override string GetFeatureName()  => trialAtual < nomesFeature.Length ? nomesFeature[trialAtual] : "vr_mem";
+    protected override string GetTaskName()    => Loc?.taskMemory ?? taskName;
+    protected override string GetDescription() => Loc?.descMemory ?? taskDescription;
+    protected override string GetFeatureName() => trialAtual < nomesFeature.Length ? nomesFeature[trialAtual] : "vr_mem";
     protected override string GetInstructionText() => $"Onde estava: <b>{_labelsAtivos[trialAtual]}</b>?";
 }
