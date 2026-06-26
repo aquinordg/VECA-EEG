@@ -173,4 +173,4 @@ Assets/Scenes/     SampleScene.unity
 MIT License — see [LICENSE](LICENSE).
 
 Cite the original VECA protocol:
-> Goyal et al. (2024). *A virtual reality cognitive assessment*. npj Digital Medicine. https://doi.org/10.1038/s41746-024-01206-5
+> Xu, Y., Zhang, C., Pan, B. et al. (2024). *A portable and efficient dementia screening tool using eye tracking machine learning and virtual reality*. npj Digital Medicine, 7, 219. https://doi.org/10.1038/s41746-024-01206-5
