@@ -1,0 +1,42 @@
+cff-version: 1.2.0
+message: "If you use VECA-EEG in your research, please cite it as below."
+type: software
+title: "VECA-EEG: A Virtual Reality Platform for Multimodal Cognitive Assessment with EEG Synchronization"
+authors:
+  - family-names: Aquino
+    given-names: Roberto Douglas Guimarães de
+    orcid: https://orcid.org/0000-0002-8486-8354
+    affiliation: Universidade de São Paulo, São Paulo, Brazil
+version: "1.0.0"
+date-released: "2026-06-16"
+url: https://github.com/aquinordg/VECA-EEG
+repository-code: https://github.com/aquinordg/VECA-EEG
+license: MIT
+abstract: >-
+  VECA-EEG is an open-source Unity 6 application that implements the VECA
+  cognitive assessment protocol in a virtual reality environment. It uses
+  gaze fixation on Areas of Interest (AOIs) as the response modality,
+  requiring no hand controllers. The platform supports millisecond-accurate
+  EEG synchronization via Lab Streaming Layer (LSL), records per-trial
+  fixation proportions to CSV, and is available in English and Portuguese
+  (PT-BR). It is designed for use with any OpenXR-compatible headset that
+  supports the Eye Gaze Interaction extension.
+keywords:
+  - virtual reality
+  - cognitive assessment
+  - EEG
+  - eye tracking
+  - Lab Streaming Layer
+  - LSL
+  - neuroscience
+  - Unity
+  - VECA
+references:
+  - type: article
+    title: "A virtual reality cognitive assessment tool for clinical and research use"
+    authors:
+      - family-names: Goyal
+        given-names: M. S.
+    journal: "npj Digital Medicine"
+    year: 2024
+    doi: 10.1038/s41746-024-01206-5
