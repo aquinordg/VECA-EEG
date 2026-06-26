@@ -33,10 +33,16 @@ keywords:
   - VECA
 references:
   - type: article
-    title: "A virtual reality cognitive assessment tool for clinical and research use"
+    title: "A portable and efficient dementia screening tool using eye tracking machine learning and virtual reality"
     authors:
-      - family-names: Goyal
-        given-names: M. S.
+      - family-names: Xu
+        given-names: Y.
+      - family-names: Zhang
+        given-names: C.
+      - family-names: Pan
+        given-names: B.
     journal: "npj Digital Medicine"
+    volume: 7
+    issue: 219
     year: 2024
     doi: 10.1038/s41746-024-01206-5
