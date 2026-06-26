@@ -45,6 +45,15 @@ Pre-built Windows releases (no Unity required). LSL synchronization is included 
 
 ---
 
+## Getting started (pre-built)
+
+1. Download and extract `Build_EN.zip` or `Build_PTBR.zip` from the [latest release](https://github.com/aquinordg/VECA-EEG/releases/tag/v1.0.0)
+2. Start **SteamVR** and confirm the headset is detected
+3. Calibrate eye tracking via the headset's native calibration tool
+4. Run **`CAB VR.exe`** inside the extracted folder
+
+---
+
 ## Getting started (from source)
 
 ```bash
