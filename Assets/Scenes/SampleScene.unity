@@ -1280,10 +1280,10 @@ MonoBehaviour:
   calculationTask: {fileID: 1450708590}
   executionTask: {fileID: 751815241}
   recallTask: {fileID: 1942482382}
-  participantID: P001
-  locConfig: {fileID: 11400000, guid: 8b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e, type: 2}
+  participantID: 
+  locConfig: {fileID: 11400000, guid: 9c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f, type: 2}
   autoStart: 0
-  pausaEntreTarefas: 1.5
+  pauseBetweenTasks: 1.5
 --- !u!4 &288957808
 Transform:
   m_ObjectHideFlags: 0
@@ -2533,22 +2533,22 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   trials:
-  - par: Trem e Bicicleta
-    opcoes:
-    - Meio de Transporte
+  - pair: Train and Bicycle
+    options:
+    - Transportation
     - Animal
-    - Cor
-    - Alimento
-    respostaCorreta: Meio de Transporte
-  - par: "Rel\xF3gio e R\xE9gua"
-    opcoes:
-    - "Instrumento de Medi\xE7\xE3o"
-    - Ferramenta
-    - Brinquedo
-    - Roupa
-    respostaCorreta: "Instrumento de Medi\xE7\xE3o"
-  complementoInstrucao: "\nO que t\xEAm em comum?"
-  pausaEntreTrials: 1
+    - Color
+    - Food
+    correctAnswer: Transportation
+  - pair: Clock and Ruler
+    options:
+    - Measurement
+    - Tool
+    - Toy
+    - Clothing
+    correctAnswer: Measurement
+  instructionComplement: What do they have in common?
+  pauseBetweenTrials: 1
 --- !u!4 &530788332
 Transform:
   m_ObjectHideFlags: 0
@@ -2625,12 +2625,12 @@ MonoBehaviour:
   - Girafa
   - Zebra
   - Tigre
-  aleatorio: 1
+  randomize: 1
   encodingDisplay: {fileID: 1142699549}
   encodingImage: {fileID: 390548659}
   encodingTime: 4
   storageDelay: 1
-  pausaEntreTrials: 0.8
+  pauseBetweenTrials: 0.8
 --- !u!4 &536029887
 Transform:
   m_ObjectHideFlags: 0
@@ -3018,14 +3018,17 @@ MonoBehaviour:
   OnTaskCompleted:
     m_PersistentCalls:
       m_Calls: []
-  instrucao: "\n\nOlhe para o n\xFAmero que vem depois do 7 na sequ\xEAncia: 8 -
-    7 - ?"
-  opcoes:
+  instruction: '
+
+
+    Look at the number that comes after 7 in the sequence: 8 -
+    7 - ?'
+  options:
   - 6
   - 4
   - 7
   - 5
-  respostaCorreta: 6
+  correctAnswer: 6
 --- !u!4 &751815242
 Transform:
   m_ObjectHideFlags: 0
@@ -3077,8 +3080,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EyeTracker
   canvasRaycaster: {fileID: 127132609}
   vrCamera: {fileID: 1160411112}
-  limiarAngularGraus: 1.5
-  duracaoMinimaFixacao: 0.12
+  angularThresholdDeg: 1.5
+  minFixationDuration: 0.12
 --- !u!4 &776776939
 Transform:
   m_ObjectHideFlags: 0
@@ -4943,22 +4946,23 @@ MonoBehaviour:
   OnTaskCompleted:
     m_PersistentCalls:
       m_Calls: []
-  instrucao: '
+  instruction: '
 
 
-    Olhe para o ANIMAL SELVAGEM'
+
+    Look at the WILD ANIMAL.'
   opcaoSprites:
   - {fileID: 21300000, guid: 56a9fc5f944ceb44abd459071c7accdb, type: 3}
   - {fileID: 21300000, guid: 4cabfd6ee5e6bcf49b9c3721f488100b, type: 3}
   - {fileID: 21300000, guid: 1da036f7d26d0a542b45074430cbfafc, type: 3}
   - {fileID: 21300000, guid: 756d9144254ad004fb5e613eb819d703, type: 3}
-  spriteCorreto: {fileID: 21300000, guid: 56a9fc5f944ceb44abd459071c7accdb, type: 3}
-  opcoes:
-  - "Le\xE3o"
-  - Vaca
-  - Porco
-  - Galinha
-  respostaCorreta: "Le\xE3o"
+  correctSprite: {fileID: 0}
+  options:
+  - Lion
+  - Cow
+  - Pig
+  - Chicken
+  correctAnswer: Lion
 --- !u!4 &1397100632
 Transform:
   m_ObjectHideFlags: 0
@@ -5169,32 +5173,32 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   trials:
-  - problema: "\n100 \u2212 7 ="
-    opcoes:
+  - problem: "100 \u2212 7 ="
+    options:
     - 93
     - 92
     - 94
     - 97
-    respostaCorreta: 93
-    nomeFeature: vr_calc4
-  - problema: "\n93 \u2212 7 ="
-    opcoes:
+    correctAnswer: 93
+    featureName: vr_calc4
+  - problem: "93 \u2212 7 ="
+    options:
     - 86
     - 85
     - 87
     - 84
-    respostaCorreta: 86
-    nomeFeature: vr_calc5
-  - problema: "\n86 \u2212 7 ="
-    opcoes:
+    correctAnswer: 86
+    featureName: vr_calc5
+  - problem: "86 \u2212 7 ="
+    options:
     - 79
     - 78
     - 80
     - 77
-    respostaCorreta: 79
-    nomeFeature: vr_calc6
-  aleatorio: 1
-  pausaEntreTrials: 1
+    correctAnswer: 79
+    featureName: vr_calc6
+  randomize: 1
+  pauseBetweenTrials: 1
 --- !u!4 &1450708591
 Transform:
   m_ObjectHideFlags: 0
@@ -7266,7 +7270,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   memoryTask: {fileID: 536029886}
-  pausaEntreTrials: 1
+  pauseBetweenTrials: 1
 --- !u!4 &1942482383
 Transform:
   m_ObjectHideFlags: 0

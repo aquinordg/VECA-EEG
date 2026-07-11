@@ -110,7 +110,7 @@ Language is selected via a `LocalizationConfig` ScriptableObject assigned to `Te
 | `Localization_PTBR` | Português (BR) | `Assets/_VECA-EEG/Localization/` |
 | `Localization_EN` | English | `Assets/_VECA-EEG/Localization/` |
 
-The config covers all UI strings, task names, instructions, button labels, and stimulus content. Leaving the field empty falls back to PT-BR defaults.
+The config covers all UI strings, task names, instructions, button labels, and stimulus content. Leaving the field empty falls back to EN defaults.
 
 ---
 
