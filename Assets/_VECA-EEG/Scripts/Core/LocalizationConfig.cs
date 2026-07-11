@@ -72,7 +72,7 @@ public class LocalizationConfig : ScriptableObject
     [TextArea(4, 10)]
     public string descCalculation =
         "<b>TAREFA:</b> CÁLCULO\n\n" +
-        "Uma conta de subtração será exibida na instrução.\n" +
+        "Uma operação aritmética será exibida na instrução.\n" +
         "Entre as 4 opções na tela, fixe o olhar na resposta correta.\n\n" +
         "<b>Exemplo:</b> \"10 − 8 =\" → olhe para o número 2.\n\n" +
         "Esta tarefa tem 3 rodadas.";

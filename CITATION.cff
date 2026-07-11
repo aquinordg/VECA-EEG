@@ -7,8 +7,8 @@ authors:
     given-names: Roberto Douglas Guimarães de
     orcid: https://orcid.org/0000-0002-8486-8354
     affiliation: Universidade de São Paulo, São Paulo, Brazil
-version: "1.0.0"
-date-released: "2026-06-16"
+version: "1.0.2"
+date-released: "2026-07-11"
 url: https://github.com/aquinordg/VECA-EEG
 repository-code: https://github.com/aquinordg/VECA-EEG
 license: MIT

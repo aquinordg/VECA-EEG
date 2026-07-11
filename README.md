@@ -12,8 +12,8 @@ Pre-built Windows releases (no Unity required). LSL synchronization is included 
 
 | Version | Language | Link |
 |---|---|---|
-| v1.0.0 | English | [Build_EN.zip](https://github.com/aquinordg/VECA-EEG/releases/tag/v1.0.0) |
-| v1.0.0 | Português | [Build_PTBR.zip](https://github.com/aquinordg/VECA-EEG/releases/tag/v1.0.0) |
+| v1.0.2 | English | [Build_EN.zip](https://github.com/aquinordg/VECA-EEG/releases/tag/v1.0.2) |
+| v1.0.2 | Português | [Build_PTBR.zip](https://github.com/aquinordg/VECA-EEG/releases/tag/v1.0.2) |
 
 ---
 
@@ -47,7 +47,7 @@ Pre-built Windows releases (no Unity required). LSL synchronization is included 
 
 ## Getting started (pre-built)
 
-1. Download and extract `Build_EN.zip` or `Build_PTBR.zip` from the [latest release](https://github.com/aquinordg/VECA-EEG/releases/tag/v1.0.0)
+1. Download and extract `Build_EN.zip` or `Build_PTBR.zip` from the [latest release](https://github.com/aquinordg/VECA-EEG/releases/tag/v1.0.2)
 2. Start **SteamVR** and confirm the headset is detected
 3. Calibrate eye tracking via the headset's native calibration tool
 4. Run **`CAB VR.exe`** inside the extracted folder
@@ -137,7 +137,7 @@ Navigation buttons highlight in yellow when the user's gaze is on them and activ
 | 3 | Abstraction (2 trials) | `vr_abs` | 8 s each |
 | 4 | Calculation (3 trials) | `vr_calc4`, `vr_calc5`, `vr_calc6` | 8 s each |
 | 5 | Execution | `vr_exec` | 8 s |
-| 6 | Delayed Recall (3 trials) | `vr_recall` | 8 s each |
+| 6 | Recall (3 trials) | `vr_recall` | 8 s each |
 
 Each feature value is the proportion of fixation time on the correct AOI during the execution window (0–1).
 

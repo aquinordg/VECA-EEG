@@ -5,8 +5,8 @@ using UnityEngine;
 /// <summary>
 /// Calculation Task — features: vr_calc4, vr_calc5, vr_calc6
 ///
-/// Three serial subtractions (100−7). The participant sees the problem in the instruction
-/// and fixates on the correct answer among 4 numerical options.
+/// Three arithmetic operations (addition or subtraction). The participant sees the problem
+/// in the instruction and fixates on the correct answer among 4 numerical options.
 ///
 /// INSPECTOR SETUP:
 ///   Trials[0] → problem "100 − 7 =", options ["93","92","94","97"], correct "93"
@@ -69,7 +69,7 @@ public class CalculationTask : TaskBase
         if (string.IsNullOrWhiteSpace(taskDescription))
             taskDescription =
                 "<b>TASK:</b> CALCULATION\n\n" +
-                "A subtraction problem will appear in the instruction.\n" +
+                "An arithmetic operation will appear in the instruction.\n" +
                 "Among the 4 options on screen, fix your gaze on the correct answer.\n\n" +
                 "<b>Example:</b> \"10 − 8 =\" → look at the number 2.\n\n" +
                 "This task has 3 rounds.";
