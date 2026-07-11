@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// Visual Attention Task — feature: vr_att
@@ -29,6 +30,7 @@ public class AttentionTask : TaskBase
     public Sprite[] opcaoSprites;
 
     [Tooltip("Sprite of the correct answer (must be one of opcaoSprites)")]
+    [FormerlySerializedAs("spriteCorreto")]
     public Sprite correctSprite;
 
     [Header("Text Mode (fallback)")]
@@ -70,10 +72,21 @@ public class AttentionTask : TaskBase
 
     protected override void SetupTrial()
     {
-        bool useSprites = opcaoSprites != null && opcaoSprites.Length >= 2 && correctSprite != null;
+        bool useSprites = opcaoSprites != null && opcaoSprites.Length >= 4;
 
         if (useSprites)
-            uiManager.SetupAOIs(opcaoSprites, correctSprite);
+        {
+            Sprite correct = correctSprite;
+            if (correct == null)
+            {
+                // correctSprite was not re-assigned after field rename — infer from correctAnswer index
+                string[] labels = Loc?.attentionOpcoes ?? options;
+                string   target = Loc?.attentionRespostaCorreta ?? correctAnswer;
+                int idx = System.Array.IndexOf(labels, target);
+                correct = (idx >= 0 && idx < opcaoSprites.Length) ? opcaoSprites[idx] : opcaoSprites[0];
+            }
+            uiManager.SetupAOIs(opcaoSprites, correct);
+        }
         else
             uiManager.SetupAOIs(Loc?.attentionOpcoes ?? options, Loc?.attentionRespostaCorreta ?? correctAnswer);
 
