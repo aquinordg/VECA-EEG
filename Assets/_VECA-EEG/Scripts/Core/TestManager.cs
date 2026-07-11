@@ -96,27 +96,27 @@ public class TestManager : MonoBehaviour
         yield return new WaitForSeconds(3f);
 
         // ── 1. MEMÓRIA ────────────────────────────────────────────────────────
-        eyeTracker.CurrentTrialLabel = "Memoria";
+        eyeTracker.CurrentTrialLabel = "Memory";
         yield return StartCoroutine(ExecutarMemoria());
         yield return new WaitForSeconds(pausaEntreTarefas);
 
         // ── 2. ATENÇÃO ────────────────────────────────────────────────────────
-        eyeTracker.CurrentTrialLabel = "Atencao";
+        eyeTracker.CurrentTrialLabel = "Attention";
         yield return StartCoroutine(ExecutarTarefaSimples(attentionTask, "vr_att"));
         yield return new WaitForSeconds(pausaEntreTarefas);
 
         // ── 3. ABSTRAÇÃO ──────────────────────────────────────────────────────
-        eyeTracker.CurrentTrialLabel = "Abstracao";
+        eyeTracker.CurrentTrialLabel = "Abstraction";
         yield return StartCoroutine(ExecutarAbstracao());
         yield return new WaitForSeconds(pausaEntreTarefas);
 
         // ── 4-6. CÁLCULO ──────────────────────────────────────────────────────
-        eyeTracker.CurrentTrialLabel = "Calculo";
+        eyeTracker.CurrentTrialLabel = "Calculation";
         yield return StartCoroutine(ExecutarCalculo());
         yield return new WaitForSeconds(pausaEntreTarefas);
 
         // ── 7. EXECUÇÃO ───────────────────────────────────────────────────────
-        eyeTracker.CurrentTrialLabel = "Execucao";
+        eyeTracker.CurrentTrialLabel = "Execution";
         yield return StartCoroutine(ExecutarTarefaSimples(executionTask, "vr_exec"));
         yield return new WaitForSeconds(pausaEntreTarefas);
 
