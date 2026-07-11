@@ -47,7 +47,7 @@ public abstract class TaskBase : MonoBehaviour
 
     protected string FormatFeedback(float pct)
     {
-        string tmpl = Loc?.feedbackTemplate ?? "{0}% do tempo na resposta correta";
+        string tmpl = Loc?.feedbackTemplate ?? "{0}% of time on correct answer";
         return string.Format(tmpl, $"{pct * 100f:F0}");
     }
 

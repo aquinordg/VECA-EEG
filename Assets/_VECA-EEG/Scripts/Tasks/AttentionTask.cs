@@ -2,57 +2,57 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Tarefa de Atenção Visual — feature: vr_att
+/// Visual Attention Task — feature: vr_att
 ///
-/// Mostra 4 opções; o participante deve fixar no estímulo alvo.
-/// A instrução permanece visível durante a execução para lembrar o alvo.
+/// Shows 4 options; the participant must fixate on the target stimulus.
+/// The instruction remains visible during execution to remind the participant of the target.
 ///
-/// CONFIGURAÇÃO NO INSPECTOR (modo imagem):
-///   OpcaoSprites      → 4 sprites (ex: Leão, Vaca, Porco, Galinha)
-///   SpriteCorreto     → sprite da resposta correta (ex: Leão)
-///   Instrucao         → texto exibido durante o trial
-///   executionTime     → 8 s
+/// INSPECTOR SETUP (image mode):
+///   OpcaoSprites  → 4 sprites (e.g., Lion, Cow, Pig, Chicken)
+///   CorrectSprite → sprite of the correct answer (e.g., Lion)
+///   Instruction   → text displayed during the trial
+///   executionTime → 8 s
 ///
-/// CONFIGURAÇÃO NO INSPECTOR (modo texto — fallback):
-///   Opcoes            → 4 rótulos
-///   RespostaCorreta   → um dos rótulos acima
+/// INSPECTOR SETUP (text mode — fallback):
+///   Options       → 4 labels
+///   CorrectAnswer → one of the labels above
 /// </summary>
 public class AttentionTask : TaskBase
 {
-    [Header("Conteúdo")]
-    [Tooltip("Instrução exibida durante o trial")]
+    [Header("Content")]
+    [Tooltip("Instruction shown during the trial")]
     [TextArea(2, 4)]
-    public string instrucao = "\n\n\nOlhe para o ANIMAL SELVAGEM.";
+    public string instruction = "\n\n\nLook at the WILD ANIMAL.";
 
-    [Header("Modo Imagem (prioridade)")]
-    [Tooltip("4 sprites exibidos nos botões")]
+    [Header("Image Mode (priority)")]
+    [Tooltip("4 sprites shown on the buttons")]
     public Sprite[] opcaoSprites;
 
-    [Tooltip("Sprite da resposta correta (deve ser um dos opcaoSprites)")]
-    public Sprite spriteCorreto;
+    [Tooltip("Sprite of the correct answer (must be one of opcaoSprites)")]
+    public Sprite correctSprite;
 
-    [Header("Modo Texto (fallback)")]
-    [Tooltip("4 rótulos exibidos nos botões")]
-    public string[] opcoes = { "Leão", "Vaca", "Porco", "Galinha" };
+    [Header("Text Mode (fallback)")]
+    [Tooltip("4 labels shown on the buttons")]
+    public string[] options = { "Lion", "Cow", "Pig", "Chicken" };
 
-    [Tooltip("Qual das opções é a resposta correta")]
-    public string respostaCorreta = "Leão";
+    [Tooltip("Which option is the correct answer")]
+    public string correctAnswer = "Lion";
 
     protected override void Awake()
     {
         base.Awake();
-        taskName                        = "ATENÇÃO";
-        executionTime                   = 8f;
-        showInstructionDuringExecution  = true;
+        taskName                       = "ATTENTION";
+        executionTime                  = 8f;
+        showInstructionDuringExecution = true;
         if (string.IsNullOrWhiteSpace(taskDescription))
             taskDescription =
-                "<b>TAREFA:</b> ATENÇÃO\n\n" +
-                "Uma instrução será exibida na tela.\n" +
-                "Leia com atenção e fixe o olhar no item correto entre\n" +
-                "as 4 opções apresentadas.\n\n" +
-                "<b>Exemplo:</b> se a instrução diz \"Olhe para o brinquedo\",\n" +
-                "olhe para a imagem do brinquedo.\n\n" +
-                "Esta tarefa tem 1 rodada.";
+                "<b>TASK:</b> ATTENTION\n\n" +
+                "An instruction will appear on screen.\n" +
+                "Read it carefully and fix your gaze on the correct item\n" +
+                "among the 4 options presented.\n\n" +
+                "<b>Example:</b> if the instruction says \"Look at the toy\",\n" +
+                "look at the image of the toy.\n\n" +
+                "This task has 1 round.";
     }
 
     protected override IEnumerator PreparationPhase()
@@ -65,17 +65,17 @@ public class AttentionTask : TaskBase
             uiManager.UpdateTimer(preparationTime - elapsed);
             yield return null;
         }
-        // Instrução permanece visível quando as AOIs aparecem
+        // Instruction remains visible when AOIs appear
     }
 
     protected override void SetupTrial()
     {
-        bool usarSprites = opcaoSprites != null && opcaoSprites.Length >= 2 && spriteCorreto != null;
+        bool useSprites = opcaoSprites != null && opcaoSprites.Length >= 2 && correctSprite != null;
 
-        if (usarSprites)
-            uiManager.SetupAOIs(opcaoSprites, spriteCorreto);
+        if (useSprites)
+            uiManager.SetupAOIs(opcaoSprites, correctSprite);
         else
-            uiManager.SetupAOIs(Loc?.attentionOpcoes ?? opcoes, Loc?.attentionRespostaCorreta ?? respostaCorreta);
+            uiManager.SetupAOIs(Loc?.attentionOpcoes ?? options, Loc?.attentionRespostaCorreta ?? correctAnswer);
 
         uiManager.ShowAOIs(true);
     }
@@ -84,5 +84,5 @@ public class AttentionTask : TaskBase
     protected override string GetDescription()     => L(Loc?.descAttention, taskDescription);
     protected override float  CalculateScore()     => eyeTracker.GetCorrectAOIPercentage();
     protected override string GetFeatureName()     => "vr_att";
-    protected override string GetInstructionText() => Loc?.attentionInstrucao ?? instrucao;
+    protected override string GetInstructionText() => Loc?.attentionInstrucao ?? instruction;
 }

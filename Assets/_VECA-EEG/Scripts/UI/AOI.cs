@@ -4,18 +4,18 @@ using TMPro;
 
 public class AOI : MonoBehaviour
 {
-    [Header("Identificação")]
+    [Header("Identification")]
     public string aoiID;
     public bool isCorrectAnswer = false;
-    
-    [Header("Dados de Fixação")]
+
+    [Header("Fixation Data")]
     public float totalFixationTime = 0f;
     public int fixationCount = 0;
     public float firstFixationTime = -1f;
     public bool wasLookedAt = false;
-    
-    [Header("Componentes")]
-    [Tooltip("Imagem filha para exibir sprites (opcional). Arraste o filho 'AOI_Image' aqui.")]
+
+    [Header("Components")]
+    [Tooltip("Child image for displaying sprites (optional). Drag the 'AOI_Image' child here.")]
     public Image aoiImage;
     private Image backgroundImage;
     private Button button;
@@ -48,49 +48,49 @@ public class AOI : MonoBehaviour
     }
 
     /// <summary>
-    /// Exibe um sprite na AOI e oculta o texto.
-    /// Passe null para voltar ao modo texto.
+    /// Displays a sprite on the AOI and hides the text.
+    /// Pass null to return to text mode.
     /// </summary>
     public void SetSprite(Sprite sprite)
     {
-        bool usarImagem = sprite != null;
+        bool useImage = sprite != null;
 
         if (aoiImage != null)
         {
             aoiImage.sprite = sprite;
-            aoiImage.gameObject.SetActive(usarImagem);
+            aoiImage.gameObject.SetActive(useImage);
         }
 
         if (labelText != null)
-            labelText.gameObject.SetActive(!usarImagem);
+            labelText.gameObject.SetActive(!useImage);
     }
-    
+
     public void Highlight()
     {
         if (backgroundImage != null)
-            backgroundImage.color = new Color(1f, 0.8f, 0f); // Amarelo
+            backgroundImage.color = new Color(1f, 0.8f, 0f); // Yellow
     }
-    
+
     public void Unhighlight()
     {
         if (backgroundImage != null)
-            backgroundImage.color = new Color(0.88f, 0.88f, 0.88f); // Cinza
+            backgroundImage.color = new Color(0.88f, 0.88f, 0.88f); // Gray
     }
-    
+
     public void MarkAsCorrect()
     {
         if (backgroundImage != null)
-            backgroundImage.color = new Color(0f, 1f, 0f); // Verde
+            backgroundImage.color = new Color(0f, 1f, 0f); // Green
         isCorrectAnswer = true;
     }
-    
+
     public void MarkAsIncorrect()
     {
         if (backgroundImage != null)
-            backgroundImage.color = new Color(1f, 0.2f, 0.2f); // Vermelho
+            backgroundImage.color = new Color(1f, 0.2f, 0.2f); // Red
         isCorrectAnswer = false;
     }
-    
+
     public void ResetData()
     {
         totalFixationTime = 0f;

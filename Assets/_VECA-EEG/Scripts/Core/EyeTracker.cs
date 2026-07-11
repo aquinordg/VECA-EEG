@@ -8,42 +8,42 @@ using UnityEngine.XR;
 
 public class EyeTracker : MonoBehaviour
 {
-    [Header("Raycasting no Canvas")]
-    [Tooltip("GraphicRaycaster do WorldCanvas que contém as AOIs")]
+    [Header("Canvas Raycasting")]
+    [Tooltip("GraphicRaycaster of the WorldCanvas containing the AOIs")]
     public GraphicRaycaster canvasRaycaster;
 
-    [Header("Camera VR")]
-    [Tooltip("Main Camera do XR Origin (se vazio usa Camera.main)")]
+    [Header("VR Camera")]
+    [Tooltip("Main Camera of the XR Origin (if empty, uses Camera.main)")]
     public Camera vrCamera;
 
     [Header("Fixation Parameters")]
-    [Tooltip("Deslocamento angular máximo (graus) entre frames para contar como fixação")]
-    public float limiarAngularGraus = 1.5f;
-    [Tooltip("Tempo mínimo parado (s) para iniciar acumulação")]
-    public float duracaoMinimaFixacao = 0.12f;
+    [Tooltip("Maximum angular displacement (degrees) between frames to count as a fixation")]
+    public float angularThresholdDeg = 1.5f;
+    [Tooltip("Minimum dwell time (s) before accumulation begins")]
+    public float minFixationDuration = 0.12f;
 
-    // ── Estado interno ───────────────────────────────────────────────────────
+    // ── Internal state ───────────────────────────────────────────────────────
 
-    private bool gravando;
+    private bool recording;
 
-    private AOI aoiAtual;
-    private AOI aoiCorreta;
+    private AOI currentAOI;
+    private AOI correctAOI;
 
-    // Controle de fixação
-    private Vector3 direcaoAnterior;
-    private float tempoParado;
-    private bool estaFixando;
-    private bool fixacaoRegistrada;
+    // Fixation control
+    private Vector3 previousDirection;
+    private float   stoppedTime;
+    private bool    isFixating;
+    private bool    fixationRegistered;
 
-    // Acumuladores
-    private float tempoNaCorreta;
-    private float tempoTotalFixado;
-    private float tempoTotalGravacao;
+    // Accumulators
+    private float timeOnCorrect;
+    private float totalFixationTimeAccum;
+    private float totalRecordingTimeAccum;
 
     // Eye tracking (OpenXR Eye Gaze Interaction)
     private InputAction gazeAction;
 
-    // ── Ciclo de vida ────────────────────────────────────────────────────────
+    // ── Lifecycle ────────────────────────────────────────────────────────────
 
     void Awake()
     {
@@ -56,104 +56,104 @@ public class EyeTracker : MonoBehaviour
         if (vrCamera == null) vrCamera = Camera.main;
 
         if (gazeAction.controls.Count == 0)
-            Debug.LogWarning("[EyeTracker] NENHUM Eye Gaze detectado. Verifique:\n" +
-                "  1) SRanipal rodando na bandeja do Windows\n" +
-                "  2) Eye Gaze Interaction habilitado em Project Settings > XR > OpenXR > Features\n" +
-                "  3) SteamVR ativo e headset acordado\n" +
-                "  4) Eye tracking calibrado no SteamVR Dashboard");
+            Debug.LogWarning("[EyeTracker] NO Eye Gaze detected. Check:\n" +
+                "  1) SRanipal running in the Windows system tray\n" +
+                "  2) Eye Gaze Interaction enabled in Project Settings > XR > OpenXR > Features\n" +
+                "  3) SteamVR active and headset awake\n" +
+                "  4) Eye tracking calibrated in the SteamVR Dashboard");
 
-        InputSystem.onDeviceChange += AoMudarDispositivo;
+        InputSystem.onDeviceChange += OnDeviceChange;
     }
 
     void OnDestroy()
     {
         gazeAction?.Disable();
         gazeAction?.Dispose();
-        InputSystem.onDeviceChange -= AoMudarDispositivo;
+        InputSystem.onDeviceChange -= OnDeviceChange;
     }
 
-    private void AoMudarDispositivo(UnityEngine.InputSystem.InputDevice device, InputDeviceChange change)
+    private void OnDeviceChange(UnityEngine.InputSystem.InputDevice device, InputDeviceChange change)
     {
         if (change == InputDeviceChange.Added || change == InputDeviceChange.Reconnected)
             if (gazeAction.controls.Count == 0)
-                Debug.LogWarning("[EyeTracker] Dispositivo conectado mas Eye Gaze ainda não detectado.");
+                Debug.LogWarning("[EyeTracker] Device connected but Eye Gaze still not detected.");
     }
 
-    // ── API Pública ──────────────────────────────────────────────────────────
+    // ── Public API ───────────────────────────────────────────────────────────
 
     public System.DateTime RecordingStartTime { get; private set; }
     public System.DateTime RecordingEndTime   { get; private set; }
 
-    /// <summary>Label enviado nos marcadores LSL trial_start/trial_end. Deve ser definido antes de StartRecording().</summary>
+    /// <summary>Label sent in LSL trial_start/trial_end markers. Must be set before StartRecording().</summary>
     public string CurrentTrialLabel { get; set; } = "";
 
     public void StartRecording()
     {
-        RecordingStartTime  = System.DateTime.Now;
+        RecordingStartTime      = System.DateTime.Now;
         LSLMarkerStream.Instance?.SendMarker($"trial_start,{CurrentTrialLabel}");
-        gravando            = true;
-        aoiAtual            = null;
-        tempoNaCorreta      = 0f;
-        tempoTotalFixado    = 0f;
-        tempoTotalGravacao  = 0f;
-        tempoParado         = 0f;
-        estaFixando         = false;
-        fixacaoRegistrada   = false;
-        if (!TryGetGazeRay(out _, out direcaoAnterior))
-            direcaoAnterior = vrCamera != null ? vrCamera.transform.forward : Vector3.forward;
+        recording               = true;
+        currentAOI              = null;
+        timeOnCorrect           = 0f;
+        totalFixationTimeAccum  = 0f;
+        totalRecordingTimeAccum = 0f;
+        stoppedTime             = 0f;
+        isFixating              = false;
+        fixationRegistered      = false;
+        if (!TryGetGazeRay(out _, out previousDirection))
+            previousDirection = vrCamera != null ? vrCamera.transform.forward : Vector3.forward;
     }
 
     public void StopRecording()
     {
         RecordingEndTime = System.DateTime.Now;
         LSLMarkerStream.Instance?.SendMarker($"trial_end,{CurrentTrialLabel}");
-        gravando         = false;
-        DesativarDestaque(aoiAtual);
-        aoiAtual         = null;
+        recording        = false;
+        DeactivateHighlight(currentAOI);
+        currentAOI       = null;
     }
 
-    public void SetCurrentCorrectAOI(AOI aoi) => aoiCorreta = aoi;
+    public void SetCurrentCorrectAOI(AOI aoi) => correctAOI = aoi;
 
-    // ── Métricas ─────────────────────────────────────────────────────────────
+    // ── Metrics ──────────────────────────────────────────────────────────────
 
-    public float GetTimeOnCorrectAOI()    => tempoNaCorreta;
-    public float GetTotalFixatedTime()    => tempoTotalFixado;
-    public float GetTotalRecordingTime()  => tempoTotalGravacao;
+    public float GetTimeOnCorrectAOI()    => timeOnCorrect;
+    public float GetTotalFixatedTime()    => totalFixationTimeAccum;
+    public float GetTotalRecordingTime()  => totalRecordingTimeAccum;
 
     public float GetCorrectAOIPercentage()
     {
-        if (tempoTotalGravacao <= 0f) return 0f;
-        return Mathf.Clamp01(tempoNaCorreta / tempoTotalGravacao);
+        if (totalRecordingTimeAccum <= 0f) return 0f;
+        return Mathf.Clamp01(timeOnCorrect / totalRecordingTimeAccum);
     }
 
-    // ── Loop principal ───────────────────────────────────────────────────────
+    // ── Main loop ────────────────────────────────────────────────────────────
 
     void Update()
     {
-        if (!gravando) return;
+        if (!recording) return;
 
-        tempoTotalGravacao += Time.deltaTime;
+        totalRecordingTimeAccum += Time.deltaTime;
 
-        AOI aoiDetectada = DetectarAOISobOlhar();
-        AtualizarDestaqueVisual(aoiDetectada);
-        ProcessarFixacao(aoiDetectada);
+        AOI detectedAOI = DetectGazedAOI();
+        UpdateVisualHighlight(detectedAOI);
+        ProcessFixation(detectedAOI);
     }
 
-    // ── Detecção de Gaze ─────────────────────────────────────────────────────
+    // ── Gaze detection ───────────────────────────────────────────────────────
 
-    private AOI DetectarAOISobOlhar()
+    private AOI DetectGazedAOI()
     {
         if (canvasRaycaster == null || EventSystem.current == null) return null;
 
         var pointer = new PointerEventData(EventSystem.current)
         {
-            position = ObterPosicaoGaze()
+            position = GetGazePosition()
         };
 
-        var resultados = new List<RaycastResult>();
-        canvasRaycaster.Raycast(pointer, resultados);
+        var results = new List<RaycastResult>();
+        canvasRaycaster.Raycast(pointer, results);
 
-        foreach (var r in resultados)
+        foreach (var r in results)
         {
             var aoi = r.gameObject.GetComponent<AOI>()
                    ?? r.gameObject.GetComponentInParent<AOI>();
@@ -162,123 +162,123 @@ public class EyeTracker : MonoBehaviour
         return null;
     }
 
-    // ── Acumulação de Fixação ────────────────────────────────────────────────
+    // ── Fixation accumulation ────────────────────────────────────────────────
 
-    private void ProcessarFixacao(AOI aoiDetectada)
+    private void ProcessFixation(AOI detectedAOI)
     {
-        if (!TryGetGazeRay(out _, out Vector3 direcaoAtual))
-            direcaoAtual = vrCamera != null ? vrCamera.transform.forward : Vector3.forward;
+        if (!TryGetGazeRay(out _, out Vector3 currentDirection))
+            currentDirection = vrCamera != null ? vrCamera.transform.forward : Vector3.forward;
 
-        float angulo = Vector3.Angle(direcaoAtual, direcaoAnterior);
-        direcaoAnterior = direcaoAtual;
+        float angle = Vector3.Angle(currentDirection, previousDirection);
+        previousDirection = currentDirection;
 
-        if (angulo <= limiarAngularGraus)
+        if (angle <= angularThresholdDeg)
         {
-            tempoParado += Time.deltaTime;
+            stoppedTime += Time.deltaTime;
         }
         else
         {
-            tempoParado       = 0f;
-            estaFixando       = false;
-            fixacaoRegistrada = false;
+            stoppedTime        = 0f;
+            isFixating         = false;
+            fixationRegistered = false;
         }
 
-        bool atingiuLimiar = tempoParado >= duracaoMinimaFixacao;
+        bool thresholdReached = stoppedTime >= minFixationDuration;
 
-        if (atingiuLimiar && aoiDetectada != null)
+        if (thresholdReached && detectedAOI != null)
         {
-            if (!estaFixando || aoiDetectada != aoiAtual)
+            if (!isFixating || detectedAOI != currentAOI)
             {
-                estaFixando       = true;
-                fixacaoRegistrada = false;
+                isFixating         = true;
+                fixationRegistered = false;
             }
 
             float dt = Time.deltaTime;
-            aoiDetectada.totalFixationTime += dt;
-            aoiDetectada.wasLookedAt        = true;
-            tempoTotalFixado               += dt;
+            detectedAOI.totalFixationTime += dt;
+            detectedAOI.wasLookedAt        = true;
+            totalFixationTimeAccum        += dt;
 
-            if (aoiDetectada.firstFixationTime < 0f)
-                aoiDetectada.firstFixationTime = tempoTotalGravacao;
+            if (detectedAOI.firstFixationTime < 0f)
+                detectedAOI.firstFixationTime = totalRecordingTimeAccum;
 
-            if (!fixacaoRegistrada)
+            if (!fixationRegistered)
             {
-                aoiDetectada.fixationCount++;
-                fixacaoRegistrada = true;
+                detectedAOI.fixationCount++;
+                fixationRegistered = true;
             }
 
-            if (aoiCorreta != null && aoiDetectada == aoiCorreta)
-                tempoNaCorreta += dt;
+            if (correctAOI != null && detectedAOI == correctAOI)
+                timeOnCorrect += dt;
         }
-        else if (!atingiuLimiar)
+        else if (!thresholdReached)
         {
-            estaFixando       = false;
-            fixacaoRegistrada = false;
+            isFixating         = false;
+            fixationRegistered = false;
         }
     }
 
-    // ── Feedback Visual ──────────────────────────────────────────────────────
+    // ── Visual feedback ──────────────────────────────────────────────────────
 
-    private void AtualizarDestaqueVisual(AOI aoiDetectada)
+    private void UpdateVisualHighlight(AOI detectedAOI)
     {
-        if (aoiDetectada == aoiAtual) return;
-        DesativarDestaque(aoiAtual);
-        aoiAtual = aoiDetectada;
-        if (aoiAtual != null) aoiAtual.Highlight();
+        if (detectedAOI == currentAOI) return;
+        DeactivateHighlight(currentAOI);
+        currentAOI = detectedAOI;
+        if (currentAOI != null) currentAOI.Highlight();
     }
 
-    private void DesativarDestaque(AOI aoi)
+    private void DeactivateHighlight(AOI aoi)
     {
         if (aoi != null) aoi.Unhighlight();
     }
 
-    // ── Posição de Gaze ──────────────────────────────────────────────────────
+    // ── Gaze position ────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Retorna a posição em screen-space para onde o olhar aponta.
-    /// Usa OpenXR Eye Gaze quando disponível; fallback para mouse no editor.
+    /// Returns the screen-space position the gaze is pointing at.
+    /// Uses OpenXR Eye Gaze when available; falls back to mouse in the editor.
     /// </summary>
-    public Vector2 ObterPosicaoGaze()
+    public Vector2 GetGazePosition()
     {
         Camera cam = vrCamera != null ? vrCamera : Camera.main;
         if (cam == null) return Vector2.zero;
 
-        if (TryGetGazeRay(out Vector3 origem, out Vector3 direcao))
+        if (TryGetGazeRay(out Vector3 origin, out Vector3 direction))
         {
-            Vector3 pontoMundo = origem + direcao * 10f;
-            return cam.WorldToScreenPoint(pontoMundo);
+            Vector3 worldPoint = origin + direction * 10f;
+            return cam.WorldToScreenPoint(worldPoint);
         }
 
-        // Fallback: mouse (editor sem dispositivo)
+        // Fallback: mouse (editor without a device)
         var mouse = Mouse.current;
         return mouse != null ? mouse.position.ReadValue() : Vector2.zero;
     }
 
     /// <summary>
-    /// Obtém o raio de gaze do OpenXR Eye Gaze Interaction.
-    /// Requer que "Eye Gaze Interaction" esteja habilitado em
+    /// Retrieves the gaze ray from OpenXR Eye Gaze Interaction.
+    /// Requires "Eye Gaze Interaction" to be enabled in
     /// Project Settings > XR Plug-in Management > OpenXR > Features.
     /// </summary>
-    public bool TryGetGazeRay(out Vector3 origem, out Vector3 direcao)
+    public bool TryGetGazeRay(out Vector3 origin, out Vector3 direction)
     {
         if (gazeAction != null && gazeAction.controls.Count > 0)
         {
             var pose = gazeAction.ReadValue<PoseState>();
 
-            bool temDados = pose.isTracked ||
+            bool hasData = pose.isTracked ||
                 (pose.trackingState & (UnityEngine.XR.InputTrackingState.Position | UnityEngine.XR.InputTrackingState.Rotation))
                 == (UnityEngine.XR.InputTrackingState.Position | UnityEngine.XR.InputTrackingState.Rotation);
 
-            if (temDados)
+            if (hasData)
             {
-                origem  = pose.position;
-                direcao = pose.rotation * Vector3.forward;
+                origin    = pose.position;
+                direction = pose.rotation * Vector3.forward;
                 return true;
             }
         }
 
-        origem  = Vector3.zero;
-        direcao = Vector3.forward;
+        origin    = Vector3.zero;
+        direction = Vector3.forward;
         return false;
     }
 }

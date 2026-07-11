@@ -1,17 +1,17 @@
 using UnityEngine;
 
 /// <summary>
-/// Cursor 3D que segue o raio de gaze no espaço do mundo.
-/// Quando não há gaze rastreado, fica na direção frontal da câmera.
+/// 3D cursor that follows the gaze ray in world space.
+/// When no gaze is tracked, defaults to the camera's forward direction.
 /// </summary>
 public class GazeCursor : MonoBehaviour
 {
     public EyeTracker eyeTracker;
 
-    [Tooltip("Distância do cursor ao longo do raio de gaze")]
+    [Tooltip("Cursor distance along the gaze ray")]
     public float defaultDistance = 2f;
 
-    private Camera vrCamera;
+    private Camera   vrCamera;
     private Renderer cursorRenderer;
 
     void Start()
@@ -24,31 +24,31 @@ public class GazeCursor : MonoBehaviour
     {
         if (vrCamera == null) return;
 
-        Vector3 origem;
-        Vector3 direcao;
+        Vector3 origin;
+        Vector3 direction;
 
-        if (eyeTracker.TryGetGazeRay(out origem, out direcao))
+        if (eyeTracker.TryGetGazeRay(out origin, out direction))
         {
             if (cursorRenderer != null) cursorRenderer.enabled = true;
-            PositionarCursor(origem, direcao);
+            PositionCursor(origin, direction);
         }
         else
         {
             if (cursorRenderer != null) cursorRenderer.enabled = true;
-            origem  = vrCamera.transform.position;
-            direcao = vrCamera.transform.forward;
-            PositionarCursor(origem, direcao);
+            origin    = vrCamera.transform.position;
+            direction = vrCamera.transform.forward;
+            PositionCursor(origin, direction);
         }
     }
 
-    private void PositionarCursor(Vector3 origem, Vector3 direcao)
+    private void PositionCursor(Vector3 origin, Vector3 direction)
     {
         RaycastHit hit;
-        if (Physics.Raycast(origem, direcao, out hit))
+        if (Physics.Raycast(origin, direction, out hit))
             transform.position = hit.point;
         else
-            transform.position = origem + direcao * defaultDistance;
+            transform.position = origin + direction * defaultDistance;
 
-        transform.rotation = Quaternion.LookRotation(direcao);
+        transform.rotation = Quaternion.LookRotation(direction);
     }
 }

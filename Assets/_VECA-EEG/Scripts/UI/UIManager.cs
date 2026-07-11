@@ -32,7 +32,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI participantIDText;
 
     [Tooltip("Text appended to every task description shown with the Got It button")]
-    public string gotItHint = "Para começar, olhe para o botão ENTENDIDO\nno canto da tela.";
+    public string gotItHint = "To continue, look at the GOT IT button\nin the corner of the screen.";
 
     [Tooltip("TMP element that shows the intro text above the Start button")]
     public TextMeshProUGUI introText;
@@ -46,13 +46,13 @@ public class UIManager : MonoBehaviour
     [TextArea(4, 10)]
     [Tooltip("Introductory text shown on the start screen")]
     public string introMessage =
-        "Bem-vindo à Avaliação Cognitiva VECA-EEG.\n\n" +
-        "Este teste avalia funções cognitivas como memória, atenção, abstração, cálculo e execução de comandos.\n\n" +
-        "Em cada etapa, leia a instrução com atenção e fixe o olhar na resposta correta entre as opções apresentadas na tela.\n\n" +
-        "Quando estiver pronto para começar, pressione <b>INICIAR TESTE</b>.";
+        "Welcome to the VECA-EEG Cognitive Assessment.\n\n" +
+        "This test evaluates cognitive functions such as memory, attention, abstraction, calculation, and command execution.\n\n" +
+        "For each task, read the instruction carefully and fix your gaze on the correct answer among the options on screen.\n\n" +
+        "When you are ready to begin, press <b>START TEST</b>.";
 
     [Header("Feedback")]
-    [Tooltip("Desmarque para desativar a tela de feedback ao final de cada trial")]
+    [Tooltip("Uncheck to disable the feedback screen shown at the end of each trial")]
     public bool showTrialFeedback = true;
 
     [Header("Feedback Colors")]

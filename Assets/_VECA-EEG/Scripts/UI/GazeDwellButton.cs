@@ -2,23 +2,23 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Ativa um Button quando o gaze permanece sobre ele por <see cref="dwellTime"/> segundos.
-/// Adicione este componente a qualquer Button de navegação (Iniciar, Entendido, Nova Avaliação).
+/// Activates a Button when gaze dwells on it for <see cref="dwellTime"/> seconds.
+/// Add this component to any navigation button (Start, Got It, New Assessment).
 /// </summary>
 public class GazeDwellButton : MonoBehaviour
 {
     public EyeTracker eyeTracker;
 
-    [Tooltip("Segundos de gaze contínuo para ativar o botão")]
+    [Tooltip("Seconds of continuous gaze required to activate the button")]
     public float dwellTime = 1.5f;
 
-    [Tooltip("Imagem de progresso (Image com Image Type = Filled). Opcional.")]
+    [Tooltip("Progress image (Image with Image Type = Filled). Optional.")]
     public Image fillImage;
 
     [Header("Gaze Highlight")]
-    [Tooltip("Cor do botão em repouso")]
+    [Tooltip("Button color at rest")]
     public Color normalColor = Color.white;
-    [Tooltip("Cor do botão quando o gaze está sobre ele")]
+    [Tooltip("Button color when gaze is over it")]
     public Color gazeColor   = new Color(1f, 0.92f, 0.016f);
 
     private Button        button;
@@ -46,7 +46,7 @@ public class GazeDwellButton : MonoBehaviour
     {
         if (activated || button == null || !button.interactable) return;
 
-        Vector2 gazePos = eyeTracker.ObterPosicaoGaze();
+        Vector2 gazePos = eyeTracker.GetGazePosition();
         bool gazeOverButton = RectTransformUtility.RectangleContainsScreenPoint(
             rectTransform, gazePos, eyeTracker.vrCamera != null ? eyeTracker.vrCamera : Camera.main);
 

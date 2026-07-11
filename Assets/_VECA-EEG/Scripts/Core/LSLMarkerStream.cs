@@ -1,9 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// Singleton que mantém um LSL outlet de marcadores string.
-/// Outros scripts chamam LSLMarkerStream.Instance?.SendMarker("...").
-/// Se lsl.dll não estiver presente, desabilita silenciosamente (sem crash).
+/// Singleton that maintains an LSL string marker outlet.
+/// Other scripts call LSLMarkerStream.Instance?.SendMarker("...").
+/// If lsl.dll is not present, disables silently (no crash).
 /// </summary>
 public class LSLMarkerStream : MonoBehaviour
 {
@@ -23,12 +23,12 @@ public class LSLMarkerStream : MonoBehaviour
             streamInfo = new LSL.StreamInfo("VECA-Markers", "Markers", 1, 0.0, "VECA-EEG");
             outlet     = new LSL.StreamOutlet(streamInfo);
             ready      = true;
-            Debug.Log("[LSL] Marker stream pronto. Aguardando receptor (BrainVision Recorder).");
+            Debug.Log("[LSL] Marker stream ready. Waiting for receiver (BrainVision Recorder).");
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[LSL] Não foi possível inicializar: {e.Message}\n" +
-                             "Verifique se lsl.dll está em Assets/Plugins/. Markers desativados.");
+            Debug.LogWarning($"[LSL] Could not initialize: {e.Message}\n" +
+                             "Check that lsl.dll is in Assets/Plugins/. Markers disabled.");
         }
     }
 

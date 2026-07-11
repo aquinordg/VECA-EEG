@@ -1,49 +1,49 @@
 using UnityEngine;
 
 /// <summary>
-/// Tarefa de Execução — feature: vr_exec
+/// Execution Task — feature: vr_exec
 ///
-/// O participante recebe um comando e deve fixar na opção correta.
-/// Adaptação VR do teste de execução de comandos do MOCA.
+/// The participant receives a command and must fixate on the correct option.
+/// VR adaptation of the MOCA command execution test.
 ///
-/// CONFIGURAÇÃO NO INSPECTOR:
-///   Instrucao       → comando (ex: "Olhe para o objeto que está acima dos outros")
-///   Opcoes          → 4 rótulos nos botões
-///   RespostaCorreta → qual das opções é a correta
-///   executionTime   → 8 s (padrão artigo)
+/// INSPECTOR SETUP:
+///   Instruction   → command (e.g., "Look at the object that is above the others")
+///   Options       → 4 labels on the buttons
+///   CorrectAnswer → which option is correct
+///   executionTime → 8 s (article default)
 /// </summary>
 public class ExecutionTask : TaskBase
 {
-    [Header("Conteúdo")]
-    [Tooltip("Comando exibido durante o trial")]
+    [Header("Content")]
+    [Tooltip("Command shown during the trial")]
     [TextArea(2, 4)]
-    public string instrucao = "\n\nOlhe para o número que vem depois do 7 na sequência: 8 - 7 - ?";
+    public string instruction = "\n\nLook at the number that comes after 7 in the sequence: 8 - 7 - ?";
 
-    [Tooltip("4 opções exibidas nos botões")]
-    public string[] opcoes = { "6", "4", "7", "5" };
+    [Tooltip("4 options shown on the buttons")]
+    public string[] options = { "6", "4", "7", "5" };
 
-    [Tooltip("Qual das opções é a resposta correta")]
-    public string respostaCorreta = "6";
+    [Tooltip("Which option is the correct answer")]
+    public string correctAnswer = "6";
 
     protected override void Awake()
     {
         base.Awake();
-        taskName                       = "EXECUÇÃO";
+        taskName                       = "EXECUTION";
         executionTime                  = 8f;
         showInstructionDuringExecution = true;
         if (string.IsNullOrWhiteSpace(taskDescription))
             taskDescription =
-                "<b>TAREFA:</b> EXECUÇÃO\n\n" +
-                "Um comando será exibido na instrução.\n" +
-                "Leia com atenção e fixe o olhar na opção correta entre\n" +
-                "as 4 apresentadas na tela.\n\n" +
-                "<b>Exemplo:</b> \"Olhe para o número que vem depois do 2:\n" +
-                "1 - 2 - ?\" → olhe para o número 3.";
+                "<b>TASK:</b> EXECUTION\n\n" +
+                "A command will appear in the instruction.\n" +
+                "Read it carefully and fix your gaze on the correct option\n" +
+                "among the 4 shown on screen.\n\n" +
+                "<b>Example:</b> \"Look at the number that comes after 2:\n" +
+                "1 - 2 - ?\" → look at number 3.";
     }
 
     protected override void SetupTrial()
     {
-        uiManager.SetupAOIs(Loc?.executionOpcoes ?? opcoes, Loc?.executionRespostaCorreta ?? respostaCorreta);
+        uiManager.SetupAOIs(Loc?.executionOpcoes ?? options, Loc?.executionRespostaCorreta ?? correctAnswer);
         uiManager.ShowAOIs(true);
     }
 
@@ -51,5 +51,5 @@ public class ExecutionTask : TaskBase
     protected override string GetDescription()     => L(Loc?.descExecution, taskDescription);
     protected override float  CalculateScore()     => eyeTracker.GetCorrectAOIPercentage();
     protected override string GetFeatureName()     => "vr_exec";
-    protected override string GetInstructionText() => Loc?.executionInstrucao ?? instrucao;
+    protected override string GetInstructionText() => Loc?.executionInstrucao ?? instruction;
 }

@@ -6,28 +6,28 @@ using System.Text;
 using UnityEngine;
 
 /// <summary>
-/// Orquestrador da avaliação cognitiva VECA.
+/// Orchestrator for the VECA cognitive assessment.
 ///
-/// SEQUÊNCIA:
-///   1. Memória    → vr_mem8, vr_mem9, vr_mem10
-///   2. Atenção    → vr_att
-///   3. Abstração  → vr_abs
-///   4-6. Cálculo  → vr_calc4, vr_calc5, vr_calc6
-///   7. Execução   → vr_exec
-///   8. Recall     → vr_recall
+/// SEQUENCE:
+///   1. Memory      → vr_mem8, vr_mem9, vr_mem10
+///   2. Attention   → vr_att
+///   3. Abstraction → vr_abs
+///   4-6. Calculation → vr_calc4, vr_calc5, vr_calc6
+///   7. Execution   → vr_exec
+///   8. Recall      → vr_recall
 ///
-/// CSV salvo em: &lt;projeto&gt;/Results/VECA_&lt;ID&gt;_&lt;timestamp&gt;.csv
+/// CSV saved to: &lt;project&gt;/Results/VECA_&lt;ID&gt;_&lt;timestamp&gt;.csv
 /// </summary>
 [DefaultExecutionOrder(-10)]
 public class TestManager : MonoBehaviour
 {
     public static TestManager Instance { get; private set; }
 
-    [Header("Referências de UI")]
+    [Header("UI References")]
     public UIManager  uiManager;
     public EyeTracker eyeTracker;
 
-    [Header("Tarefas")]
+    [Header("Tasks")]
     public MemoryTask      memoryTask;
     public AttentionTask   attentionTask;
     public AbstractionTask abstractionTask;
@@ -35,17 +35,17 @@ public class TestManager : MonoBehaviour
     public ExecutionTask   executionTask;
     public RecallTask      recallTask;
 
-    [Header("Participante")]
-    [Tooltip("Preenchido automaticamente com ID aleatório ao iniciar o teste")]
+    [Header("Participant")]
+    [Tooltip("Auto-filled with a random ID when the test starts")]
     public string participantID = "";
 
-    [Header("Localização")]
-    [Tooltip("Asset com todos os textos de UI. Null = PT-BR padrão.")]
+    [Header("Localization")]
+    [Tooltip("Asset with all UI texts. Null = PT-BR defaults.")]
     public LocalizationConfig locConfig;
 
-    [Header("Opções")]
+    [Header("Options")]
     public bool  autoStart         = false;
-    public float pausaEntreTarefas = 1.5f;
+    public float pauseBetweenTasks = 1.5f;
 
     private struct TrialRecord
     {
@@ -65,7 +65,7 @@ public class TestManager : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
 
-        participantID = GerarParticipantID();
+        participantID = GenerateParticipantID();
         if (uiManager != null) uiManager.SetParticipantID(participantID);
     }
 
@@ -74,16 +74,16 @@ public class TestManager : MonoBehaviour
         if (autoStart) StartTest();
     }
 
-    // ── API Pública ──────────────────────────────────────────────────────────
+    // ── Public API ───────────────────────────────────────────────────────────
 
     public void StartTest()
     {
-        if (!TestRunning) StartCoroutine(SequenciaCompleta());
+        if (!TestRunning) StartCoroutine(FullSequence());
     }
 
-    // ── Sequência Completa ───────────────────────────────────────────────────
+    // ── Full sequence ────────────────────────────────────────────────────────
 
-    private IEnumerator SequenciaCompleta()
+    private IEnumerator FullSequence()
     {
         TestRunning = true;
         records.Clear();
@@ -92,61 +92,61 @@ public class TestManager : MonoBehaviour
 
         uiManager.HideStartScreen();
         uiManager.HideParticipantID();
-        uiManager.ShowInstruction(locConfig?.prepareMessage ?? "\n\nPrepare-se para começar.", 3f);
+        uiManager.ShowInstruction(locConfig?.prepareMessage ?? "\n\nGet ready to begin.", 3f);
         yield return new WaitForSeconds(3f);
 
-        // ── 1. MEMÓRIA ────────────────────────────────────────────────────────
+        // ── 1. MEMORY ─────────────────────────────────────────────────────────
         eyeTracker.CurrentTrialLabel = "Memory";
-        yield return StartCoroutine(ExecutarMemoria());
-        yield return new WaitForSeconds(pausaEntreTarefas);
+        yield return StartCoroutine(RunMemory());
+        yield return new WaitForSeconds(pauseBetweenTasks);
 
-        // ── 2. ATENÇÃO ────────────────────────────────────────────────────────
+        // ── 2. ATTENTION ──────────────────────────────────────────────────────
         eyeTracker.CurrentTrialLabel = "Attention";
-        yield return StartCoroutine(ExecutarTarefaSimples(attentionTask, "vr_att"));
-        yield return new WaitForSeconds(pausaEntreTarefas);
+        yield return StartCoroutine(RunSimpleTask(attentionTask, "vr_att"));
+        yield return new WaitForSeconds(pauseBetweenTasks);
 
-        // ── 3. ABSTRAÇÃO ──────────────────────────────────────────────────────
+        // ── 3. ABSTRACTION ────────────────────────────────────────────────────
         eyeTracker.CurrentTrialLabel = "Abstraction";
-        yield return StartCoroutine(ExecutarAbstracao());
-        yield return new WaitForSeconds(pausaEntreTarefas);
+        yield return StartCoroutine(RunAbstraction());
+        yield return new WaitForSeconds(pauseBetweenTasks);
 
-        // ── 4-6. CÁLCULO ──────────────────────────────────────────────────────
+        // ── 4-6. CALCULATION ──────────────────────────────────────────────────
         eyeTracker.CurrentTrialLabel = "Calculation";
-        yield return StartCoroutine(ExecutarCalculo());
-        yield return new WaitForSeconds(pausaEntreTarefas);
+        yield return StartCoroutine(RunCalculation());
+        yield return new WaitForSeconds(pauseBetweenTasks);
 
-        // ── 7. EXECUÇÃO ───────────────────────────────────────────────────────
+        // ── 7. EXECUTION ──────────────────────────────────────────────────────
         eyeTracker.CurrentTrialLabel = "Execution";
-        yield return StartCoroutine(ExecutarTarefaSimples(executionTask, "vr_exec"));
-        yield return new WaitForSeconds(pausaEntreTarefas);
+        yield return StartCoroutine(RunSimpleTask(executionTask, "vr_exec"));
+        yield return new WaitForSeconds(pauseBetweenTasks);
 
-        // ── 8. RECALL TARDIO ──────────────────────────────────────────────────
+        // ── 8. RECALL ─────────────────────────────────────────────────────────
         eyeTracker.CurrentTrialLabel = "Recall";
-        yield return StartCoroutine(ExecutarRecall());
+        yield return StartCoroutine(RunRecall());
 
-        // ── ENCERRAMENTO ──────────────────────────────────────────────────────
+        // ── CLOSING ───────────────────────────────────────────────────────────
         LSLMarkerStream.Instance?.SendMarker($"session_end,{participantID}");
-        SalvarCSV();
-        uiManager.SetTaskStatus(locConfig?.statusCompleted ?? "Concluído");
+        SaveCSV();
+        uiManager.SetTaskStatus(locConfig?.statusCompleted ?? "Completed");
         uiManager.SetParticipantID(participantID);
         uiManager.ShowInstruction(
-            locConfig?.completionMessage ?? "Avaliação concluída!\n\nObrigado pela participação.\nResultados salvos.", 0f);
+            locConfig?.completionMessage ?? "Assessment complete!\n\nThank you for your participation.\nResults saved.", 0f);
         TestRunning = false;
 
         yield return StartCoroutine(uiManager.WaitForRestart());
 
-        participantID = GerarParticipantID();
+        participantID = GenerateParticipantID();
         uiManager.SetParticipantID(participantID);
         uiManager.HideInstruction();
         uiManager.SetTaskStatus("");
         uiManager.ShowStartScreen();
     }
 
-    // ── Coordenadores por tarefa ─────────────────────────────────────────────
+    // ── Task coordinators ────────────────────────────────────────────────────
 
-    private IEnumerator ExecutarMemoria()
+    private IEnumerator RunMemory()
     {
-        if (memoryTask == null) { Debug.LogWarning("[TestManager] MemoryTask não atribuído."); yield break; }
+        if (memoryTask == null) { Debug.LogWarning("[TestManager] MemoryTask not assigned."); yield break; }
 
         yield return StartCoroutine(memoryTask.RunAllTrials());
 
@@ -155,38 +155,38 @@ public class TestManager : MonoBehaviour
             var (s, e) = memoryTask.GetTrialTimes(i);
             records.Add(new TrialRecord { feature = $"vr_mem{8 + i}", value = memoryTask.GetTrialScore(i), trialStart = s, trialEnd = e });
         }
-        Debug.Log($"[Memória] {memoryTask.GetTrialScore(0):F3} / {memoryTask.GetTrialScore(1):F3} / {memoryTask.GetTrialScore(2):F3}");
+        Debug.Log($"[Memory] {memoryTask.GetTrialScore(0):F3} / {memoryTask.GetTrialScore(1):F3} / {memoryTask.GetTrialScore(2):F3}");
     }
 
-    /// <summary>Executa tarefas de um único trial (Atenção, Execução).</summary>
-    private IEnumerator ExecutarTarefaSimples(TaskBase tarefa, string nomeFeature)
+    /// <summary>Runs single-trial tasks (Attention, Execution).</summary>
+    private IEnumerator RunSimpleTask(TaskBase task, string featureName)
     {
-        if (tarefa == null)
+        if (task == null)
         {
-            Debug.LogWarning($"[TestManager] {nomeFeature} não atribuído — pulando.");
-            records.Add(new TrialRecord { feature = nomeFeature, value = -1f });
+            Debug.LogWarning($"[TestManager] {featureName} not assigned — skipping.");
+            records.Add(new TrialRecord { feature = featureName, value = -1f });
             yield break;
         }
 
-        tarefa.StartTask();
-        yield return null;                                        // aguarda IsRunning = true
-        yield return new WaitUntil(() => !tarefa.IsRunning);
+        task.StartTask();
+        yield return null;                                       // wait for IsRunning = true
+        yield return new WaitUntil(() => !task.IsRunning);
 
         records.Add(new TrialRecord
         {
-            feature    = nomeFeature,
-            value      = tarefa.LastScore,
-            trialStart = tarefa.TrialStartTime,
-            trialEnd   = tarefa.TrialEndTime
+            feature    = featureName,
+            value      = task.LastScore,
+            trialStart = task.TrialStartTime,
+            trialEnd   = task.TrialEndTime
         });
-        Debug.Log($"[{nomeFeature}] {tarefa.LastScore:F3}");
+        Debug.Log($"[{featureName}] {task.LastScore:F3}");
     }
 
-    private IEnumerator ExecutarAbstracao()
+    private IEnumerator RunAbstraction()
     {
         if (abstractionTask == null)
         {
-            Debug.LogWarning("[TestManager] AbstractionTask não atribuído.");
+            Debug.LogWarning("[TestManager] AbstractionTask not assigned.");
             records.Add(new TrialRecord { feature = "vr_abs", value = -1f });
             yield break;
         }
@@ -197,12 +197,12 @@ public class TestManager : MonoBehaviour
         var   tStart = abstractionTask.GetTrialTimes(0).start;
         var   tEnd   = abstractionTask.GetTrialTimes(abstractionTask.trials.Length - 1).end;
         records.Add(new TrialRecord { feature = "vr_abs", value = score, trialStart = tStart, trialEnd = tEnd });
-        Debug.Log($"[Abstração] {score:F3}");
+        Debug.Log($"[Abstraction] {score:F3}");
     }
 
-    private IEnumerator ExecutarCalculo()
+    private IEnumerator RunCalculation()
     {
-        if (calculationTask == null) { Debug.LogWarning("[TestManager] CalculationTask não atribuído."); yield break; }
+        if (calculationTask == null) { Debug.LogWarning("[TestManager] CalculationTask not assigned."); yield break; }
 
         yield return StartCoroutine(calculationTask.RunAllTrials());
 
@@ -211,14 +211,14 @@ public class TestManager : MonoBehaviour
             var (s, e) = calculationTask.GetTrialTimes(i);
             records.Add(new TrialRecord { feature = $"vr_calc{4 + i}", value = calculationTask.GetTrialScore(i), trialStart = s, trialEnd = e });
         }
-        Debug.Log($"[Cálculo] {calculationTask.GetTrialScore(0):F3} / {calculationTask.GetTrialScore(1):F3} / {calculationTask.GetTrialScore(2):F3}");
+        Debug.Log($"[Calculation] {calculationTask.GetTrialScore(0):F3} / {calculationTask.GetTrialScore(1):F3} / {calculationTask.GetTrialScore(2):F3}");
     }
 
-    private IEnumerator ExecutarRecall()
+    private IEnumerator RunRecall()
     {
         if (recallTask == null)
         {
-            Debug.LogWarning("[TestManager] RecallTask não atribuído.");
+            Debug.LogWarning("[TestManager] RecallTask not assigned.");
             records.Add(new TrialRecord { feature = "vr_recall", value = -1f });
             yield break;
         }
@@ -232,26 +232,26 @@ public class TestManager : MonoBehaviour
         Debug.Log($"[Recall] {score:F3}");
     }
 
-    // ── Geração de ID ────────────────────────────────────────────────────────
+    // ── ID generation ────────────────────────────────────────────────────────
 
-    private static string GerarParticipantID()
+    private static string GenerateParticipantID()
     {
-        const string chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // sem 0/O/1/I/L
+        const string chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0/O/1/I/L
         var sb = new System.Text.StringBuilder(6);
         for (int i = 0; i < 6; i++)
             sb.Append(chars[Random.Range(0, chars.Length)]);
         return sb.ToString();
     }
 
-    // ── Exportação CSV ───────────────────────────────────────────────────────
+    // ── CSV export ───────────────────────────────────────────────────────────
 
-    private void SalvarCSV()
+    private void SaveCSV()
     {
-        string pasta = Path.Combine(Application.dataPath, "..", "Results");
-        Directory.CreateDirectory(pasta);
+        string folder = Path.Combine(Application.dataPath, "..", "Results");
+        Directory.CreateDirectory(folder);
 
         string sessionTs = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        string arquivo   = Path.Combine(pasta, $"VECA_{participantID}_{sessionTs}.csv");
+        string file      = Path.Combine(folder, $"VECA_{participantID}_{sessionTs}.csv");
 
         var sb = new StringBuilder();
         sb.AppendLine("participant_id,trial_start,trial_end,feature,value");
@@ -263,7 +263,7 @@ public class TestManager : MonoBehaviour
             sb.AppendLine($"{participantID},{ts},{te},{r.feature},{r.value.ToString("F4", CultureInfo.InvariantCulture)}");
         }
 
-        File.WriteAllText(arquivo, sb.ToString(), Encoding.UTF8);
-        Debug.Log($"[TestManager] CSV salvo em: {arquivo}");
+        File.WriteAllText(file, sb.ToString(), Encoding.UTF8);
+        Debug.Log($"[TestManager] CSV saved to: {file}");
     }
 }

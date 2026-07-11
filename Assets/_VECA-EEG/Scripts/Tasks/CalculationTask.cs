@@ -3,127 +3,127 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Tarefa de Cálculo — features: vr_calc4, vr_calc5, vr_calc6
+/// Calculation Task — features: vr_calc4, vr_calc5, vr_calc6
 ///
-/// Três subtrações seriais (100−7). O participante vê o problema na instrução
-/// e fixa na resposta correta entre 4 opções numéricas.
+/// Three serial subtractions (100−7). The participant sees the problem in the instruction
+/// and fixates on the correct answer among 4 numerical options.
 ///
-/// CONFIGURAÇÃO NO INSPECTOR:
-///   Trials[0] → problema "100 − 7 =", opções ["93","92","94","97"], correta "93"
-///   Trials[1] → problema "93 − 7 =",  opções ["86","85","87","84"], correta "86"
-///   Trials[2] → problema "86 − 7 =",  opções ["79","78","80","77"], correta "79"
+/// INSPECTOR SETUP:
+///   Trials[0] → problem "100 − 7 =", options ["93","92","94","97"], correct "93"
+///   Trials[1] → problem "93 − 7 =",  options ["86","85","87","84"], correct "86"
+///   Trials[2] → problem "86 − 7 =",  options ["79","78","80","77"], correct "79"
 /// </summary>
 public class CalculationTask : TaskBase
 {
     [System.Serializable]
-    public class TrialCalculo
+    public class CalculationTrial
     {
-        [Tooltip("Problema exibido na instrução (ex: '100 − 7 =')")]
-        public string problema;
-        [Tooltip("4 opções numéricas nos botões")]
-        public string[] opcoes;
-        [Tooltip("Resposta correta (deve ser igual a uma das opções)")]
-        public string respostaCorreta;
-        [Tooltip("Nome da feature no CSV")]
-        public string nomeFeature;
+        [Tooltip("Problem shown in the instruction (e.g., '100 − 7 =')")]
+        public string problem;
+        [Tooltip("4 numerical options on the buttons")]
+        public string[] options;
+        [Tooltip("Correct answer (must match one of the options)")]
+        public string correctAnswer;
+        [Tooltip("Feature name in the CSV")]
+        public string featureName;
     }
 
     [Header("Trials")]
-    public TrialCalculo[] trials = new TrialCalculo[]
+    public CalculationTrial[] trials = new CalculationTrial[]
     {
-        new TrialCalculo { problema = "100 − 7 =", opcoes = new[]{"93","92","94","97"}, respostaCorreta = "93", nomeFeature = "vr_calc4" },
-        new TrialCalculo { problema = "93 − 7 =",  opcoes = new[]{"86","85","87","84"}, respostaCorreta = "86", nomeFeature = "vr_calc5" },
-        new TrialCalculo { problema = "86 − 7 =",  opcoes = new[]{"79","78","80","77"}, respostaCorreta = "79", nomeFeature = "vr_calc6" },
+        new CalculationTrial { problem = "100 − 7 =", options = new[]{"93","92","94","97"}, correctAnswer = "93", featureName = "vr_calc4" },
+        new CalculationTrial { problem = "93 − 7 =",  options = new[]{"86","85","87","84"}, correctAnswer = "86", featureName = "vr_calc5" },
+        new CalculationTrial { problem = "86 − 7 =",  options = new[]{"79","78","80","77"}, correctAnswer = "79", featureName = "vr_calc6" },
     };
 
-    [Header("Aleatorização")]
-    [Tooltip("Gera problemas aleatórios a cada sessão (sobrescreve os valores acima)")]
-    public bool aleatorio = true;
+    [Header("Randomization")]
+    [Tooltip("Generates random problems each session (overrides the values above)")]
+    public bool randomize = true;
 
-    [Header("Tempos")]
-    public float pausaEntreTrials = 1f;
+    [Header("Timing")]
+    public float pauseBetweenTrials = 1f;
 
     private float[]           scores;
     private System.DateTime[] _trialStartTimes;
     private System.DateTime[] _trialEndTimes;
-    private int               trialAtual;
+    private int               currentTrial;
 
     private void Reset()
     {
-        trials = new TrialCalculo[]
+        trials = new CalculationTrial[]
         {
-            new TrialCalculo { problema = "100 − 7 =", opcoes = new[]{"93","92","94","97"}, respostaCorreta = "93", nomeFeature = "vr_calc4" },
-            new TrialCalculo { problema = "93 − 7 =",  opcoes = new[]{"86","85","87","84"}, respostaCorreta = "86", nomeFeature = "vr_calc5" },
-            new TrialCalculo { problema = "86 − 7 =",  opcoes = new[]{"79","78","80","77"}, respostaCorreta = "79", nomeFeature = "vr_calc6" },
+            new CalculationTrial { problem = "100 − 7 =", options = new[]{"93","92","94","97"}, correctAnswer = "93", featureName = "vr_calc4" },
+            new CalculationTrial { problem = "93 − 7 =",  options = new[]{"86","85","87","84"}, correctAnswer = "86", featureName = "vr_calc5" },
+            new CalculationTrial { problem = "86 − 7 =",  options = new[]{"79","78","80","77"}, correctAnswer = "79", featureName = "vr_calc6" },
         };
     }
 
     protected override void Awake()
     {
         base.Awake();
-        taskName         = "CÁLCULO";
+        taskName         = "CALCULATION";
         executionTime    = 8f;
         scores           = new float[trials.Length];
         _trialStartTimes = new System.DateTime[trials.Length];
         _trialEndTimes   = new System.DateTime[trials.Length];
         if (string.IsNullOrWhiteSpace(taskDescription))
             taskDescription =
-                "<b>TAREFA:</b> CÁLCULO\n\n" +
-                "Uma conta de subtração será exibida na instrução.\n" +
-                "Entre as 4 opções na tela, fixe o olhar na resposta correta.\n\n" +
-                "<b>Exemplo:</b> \"10 − 8 =\" → olhe para o número 2.\n\n" +
-                "Esta tarefa tem 3 rodadas.";
+                "<b>TASK:</b> CALCULATION\n\n" +
+                "A subtraction problem will appear in the instruction.\n" +
+                "Among the 4 options on screen, fix your gaze on the correct answer.\n\n" +
+                "<b>Example:</b> \"10 − 8 =\" → look at the number 2.\n\n" +
+                "This task has 3 rounds.";
     }
 
-    // ── API para TestManager ─────────────────────────────────────────────────
+    // ── API for TestManager ──────────────────────────────────────────────────
 
     public IEnumerator RunAllTrials()
     {
-        if (aleatorio) GerarTrialsAleatorios();
+        if (randomize) GenerateRandomTrials();
 
         yield return StartCoroutine(IntroPhase());
 
         for (int i = 0; i < trials.Length; i++)
         {
-            trialAtual = i;
-            yield return ExecutarUmTrial(i);
+            currentTrial = i;
+            yield return RunSingleTrial(i);
             if (i < trials.Length - 1)
-                yield return new WaitForSeconds(pausaEntreTrials);
+                yield return new WaitForSeconds(pauseBetweenTrials);
         }
     }
 
     public (System.DateTime start, System.DateTime end) GetTrialTimes(int idx) =>
         (_trialStartTimes[idx], _trialEndTimes[idx]);
 
-    /// <summary>Score do trial idx (0–2) após conclusão (0–1).</summary>
+    /// <summary>Score for trial idx (0–2) after completion (0–1).</summary>
     public float GetTrialScore(int idx) =>
         idx >= 0 && idx < scores.Length ? scores[idx] : 0f;
 
     // ── Trial ────────────────────────────────────────────────────────────────
 
-    private IEnumerator ExecutarUmTrial(int idx)
+    private IEnumerator RunSingleTrial(int idx)
     {
         var trial = trials[idx];
         uiManager.SetTaskStatus($"{Loc?.taskCalculation ?? taskName} ({idx + 1}/{trials.Length})");
 
-        string prompt = $"{Loc?.calculationPrompt ?? "Olhe para a resposta correta."}\n\n<b>{trial.problema}</b>";
+        string prompt = $"{Loc?.calculationPrompt ?? "Look at the correct answer."}\n\n<b>{trial.problem}</b>";
         uiManager.ShowInstruction(prompt);
         yield return new WaitForSeconds(preparationTime);
 
-        uiManager.SetupAOIs(trial.opcoes, trial.respostaCorreta);
+        uiManager.SetupAOIs(trial.options, trial.correctAnswer);
         uiManager.ShowAOIs(true);
 
         uiManager.ShowInstruction(prompt);
 
-        AOI aoiCorreta = uiManager.GetCorrectAOI();
-        eyeTracker.SetCurrentCorrectAOI(aoiCorreta);
+        AOI aoiCorrect = uiManager.GetCorrectAOI();
+        eyeTracker.SetCurrentCorrectAOI(aoiCorrect);
         eyeTracker.StartRecording();
 
-        float decorrido = 0f;
-        while (decorrido < executionTime)
+        float elapsed = 0f;
+        while (elapsed < executionTime)
         {
-            decorrido += Time.deltaTime;
-            uiManager.UpdateTimer(executionTime - decorrido);
+            elapsed += Time.deltaTime;
+            uiManager.UpdateTimer(executionTime - elapsed);
             yield return null;
         }
 
@@ -141,9 +141,9 @@ public class CalculationTask : TaskBase
         uiManager.HideFeedback();
     }
 
-    // ── Geração Aleatória ────────────────────────────────────────────────────
+    // ── Random generation ────────────────────────────────────────────────────
 
-    private void GerarTrialsAleatorios()
+    private void GenerateRandomTrials()
     {
         for (int i = 0; i < trials.Length; i++)
         {
@@ -151,33 +151,33 @@ public class CalculationTask : TaskBase
             do {
                 a = Random.Range(1, 11); // 1–10
                 b = Random.Range(1, 6);  // 1–5
-            } while (a <= b);            // garante a > b
+            } while (a <= b);            // ensure a > b
 
-            bool soma      = Random.value >= 0.5f;
-            int  resultado = soma ? a + b : a - b;
-            string operador = soma ? "+" : "−";
+            bool isAddition = Random.value >= 0.5f;
+            int  result     = isAddition ? a + b : a - b;
+            string op       = isAddition ? "+" : "−";
 
-            var distratores = GerarDistratores(resultado, 3);
+            var distractors = GenerateDistractors(result, 3);
 
-            string featureName = trials[i].nomeFeature;
-            trials[i] = new TrialCalculo
+            string fname = trials[i].featureName;
+            trials[i] = new CalculationTrial
             {
-                problema        = $"{a} {operador} {b} =",
-                opcoes          = new[] { resultado.ToString(), distratores[0].ToString(),
-                                          distratores[1].ToString(), distratores[2].ToString() },
-                respostaCorreta = resultado.ToString(),
-                nomeFeature     = featureName
+                problem       = $"{a} {op} {b} =",
+                options       = new[] { result.ToString(), distractors[0].ToString(),
+                                        distractors[1].ToString(), distractors[2].ToString() },
+                correctAnswer = result.ToString(),
+                featureName   = fname
             };
         }
     }
 
-    private static List<int> GerarDistratores(int correto, int quantidade)
+    private static List<int> GenerateDistractors(int correct, int count)
     {
         var pool = new List<int>();
         for (int d = 1; d <= 5; d++)
         {
-            if (correto + d > 0) pool.Add(correto + d);
-            if (correto - d > 0) pool.Add(correto - d);
+            if (correct + d > 0) pool.Add(correct + d);
+            if (correct - d > 0) pool.Add(correct - d);
         }
 
         for (int i = pool.Count - 1; i > 0; i--)
@@ -186,20 +186,20 @@ public class CalculationTask : TaskBase
             (pool[i], pool[j]) = (pool[j], pool[i]);
         }
 
-        return pool.GetRange(0, Mathf.Min(quantidade, pool.Count));
+        return pool.GetRange(0, Mathf.Min(count, pool.Count));
     }
 
-    // ── Implementações obrigatórias de TaskBase ──────────────────────────────
+    // ── Required TaskBase implementations ────────────────────────────────────
 
     protected override void SetupTrial()
     {
-        if (trials.Length > trialAtual)
-            uiManager.SetupAOIs(trials[trialAtual].opcoes, trials[trialAtual].respostaCorreta);
+        if (trials.Length > currentTrial)
+            uiManager.SetupAOIs(trials[currentTrial].options, trials[currentTrial].correctAnswer);
     }
 
     protected override string GetTaskName()    => Loc?.taskCalculation ?? taskName;
     protected override string GetDescription() => L(Loc?.descCalculation, taskDescription);
-    protected override float  CalculateScore() => scores.Length > trialAtual ? scores[trialAtual] : 0f;
-    protected override string GetFeatureName() => trialAtual < trials.Length ? trials[trialAtual].nomeFeature : "vr_calc";
-    protected override string GetInstructionText() => trials.Length > trialAtual ? trials[trialAtual].problema : "";
+    protected override float  CalculateScore() => scores.Length > currentTrial ? scores[currentTrial] : 0f;
+    protected override string GetFeatureName() => currentTrial < trials.Length ? trials[currentTrial].featureName : "vr_calc";
+    protected override string GetInstructionText() => trials.Length > currentTrial ? trials[currentTrial].problem : "";
 }
