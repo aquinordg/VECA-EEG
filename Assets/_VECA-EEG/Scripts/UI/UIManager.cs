@@ -49,7 +49,7 @@ public class UIManager : MonoBehaviour
         "Welcome to the VECA-EEG Cognitive Assessment.\n\n" +
         "This test evaluates cognitive functions such as memory, attention, abstraction, calculation, and command execution.\n\n" +
         "For each task, read the instruction carefully and fix your gaze on the correct answer among the options on screen.\n\n" +
-        "When you are ready to begin, press <b>START TEST</b>.";
+        "When you are ready to begin, look at <b>START TEST</b>.";
 
     [Header("Feedback")]
     [Tooltip("Uncheck to disable the feedback screen shown at the end of each trial")]

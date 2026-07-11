@@ -17,7 +17,7 @@ public class LocalizationConfig : ScriptableObject
         "Bem-vindo à Avaliação Cognitiva VECA-EEG.\n\n" +
         "Este teste avalia funções cognitivas como memória, atenção, abstração, cálculo e execução de comandos.\n\n" +
         "Em cada etapa, leia a instrução com atenção e fixe o olhar na resposta correta entre as opções apresentadas na tela.\n\n" +
-        "Quando estiver pronto para começar, pressione <b>INICIAR TESTE</b>.";
+        "Quando estiver pronto para começar, olhe para <b>INICIAR TESTE</b>.";
 
     [Header("Session")]
     public string statusCompleted = "Concluído";

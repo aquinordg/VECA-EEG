@@ -16,7 +16,7 @@ MonoBehaviour:
   buttonGotIt: ENTENDIDO
   buttonRestart: NOVO TESTE
   gotItHint: "Para come\xE7ar, olhe para o bot\xE3o ENTENDIDO\nno canto da tela."
-  introMessage: "Bem-vindo \xE0 Avalia\xE7\xE3o Cognitiva VECA-EEG.\n\nEste teste avalia fun\xE7\xF5es cognitivas como mem\xF3ria, aten\xE7\xE3o, abstra\xE7\xE3o, c\xE1lculo e execu\xE7\xE3o de comandos.\n\nEm cada etapa, leia a instru\xE7\xE3o com aten\xE7\xE3o e fixe o olhar na resposta correta entre as op\xE7\xF5es apresentadas na tela.\n\nQuando estiver pronto para come\xE7ar, pressione <b>INICIAR TESTE</b>."
+  introMessage: "Bem-vindo \xE0 Avalia\xE7\xE3o Cognitiva VECA-EEG.\n\nEste teste avalia fun\xE7\xF5es cognitivas como mem\xF3ria, aten\xE7\xE3o, abstra\xE7\xE3o, c\xE1lculo e execu\xE7\xE3o de comandos.\n\nEm cada etapa, leia a instru\xE7\xE3o com aten\xE7\xE3o e fixe o olhar na resposta correta entre as op\xE7\xF5es apresentadas na tela.\n\nQuando estiver pronto para come\xE7ar, olhe para <b>INICIAR TESTE</b>."
   statusCompleted: "Conclu\xEDdo"
   prepareMessage: "\n\nPrepare-se para come\xE7ar."
   completionMessage: "Avalia\xE7\xE3o conclu\xEDda!\n\nObrigado pela participa\xE7\xE3o.\nResultados salvos."
@@ -27,12 +27,12 @@ MonoBehaviour:
   taskCalculation: "C\xC1LCULO"
   taskExecution: "EXECU\xC7\xC3O"
   taskRecall: "MEM\xD3RIA TARDIA"
-  descMemory: ""
-  descAttention: ""
-  descAbstraction: ""
-  descCalculation: ""
-  descExecution: ""
-  descRecall: ""
+  descMemory: "<b>TAREFA:</b> MEM\xD3RIA\n\nVoc\xEA ver\xE1 3 imagens, uma de cada vez, por alguns segundos.\nAp\xF3s um breve intervalo, a mesma imagem aparecer\xE1 misturada\ncom outras 3 op\xE7\xF5es — fixe o olhar nela.\n\n<b>Exemplo:</b> se voc\xEA viu um Le\xE3o, olhe para o Le\xE3o quando ele\naparecer entre as 4 op\xE7\xF5es.\n\nEsta tarefa tem 3 rodadas."
+  descAttention: "<b>TAREFA:</b> ATEN\xC7\xC3O\n\nUma instru\xE7\xE3o ser\xE1 exibida na tela.\nLeia com aten\xE7\xE3o e fixe o olhar no item correto entre\nas 4 op\xE7\xF5es apresentadas.\n\n<b>Exemplo:</b> se a instru\xE7\xE3o diz \"Olhe para o brinquedo\",\nolhe para a imagem do brinquedo.\n\nEsta tarefa tem 1 rodada."
+  descAbstraction: "<b>TAREFA:</b> ABSTRA\xC7\xC3O\n\nDois conceitos ser\xE3o exibidos na instru\xE7\xE3o.\nEntre as 4 op\xE7\xF5es, fixe o olhar na categoria que melhor\ndescreve o que eles t\xEAm em comum.\n\n<b>Exemplo:</b> \"Casa e Ponte\" → olhe para \"Constru\xE7\xF5es\".\n\nEsta tarefa tem 2 rodadas."
+  descCalculation: "<b>TAREFA:</b> C\xC1LCULO\n\nUma opera\xE7\xE3o aritm\xE9tica ser\xE1 exibida na instru\xE7\xE3o.\nEntre as 4 op\xE7\xF5es na tela, fixe o olhar na resposta correta.\n\n<b>Exemplo:</b> \"10 − 8 =\" → olhe para o n\xFAmero 2.\n\nEsta tarefa tem 3 rodadas."
+  descExecution: "<b>TAREFA:</b> EXECU\xC7\xC3O\n\nUm comando ser\xE1 exibido na instru\xE7\xE3o.\nLeia com aten\xE7\xE3o e fixe o olhar na op\xE7\xE3o correta entre\nas 4 apresentadas na tela.\n\n<b>Exemplo:</b> \"Olhe para o n\xFAmero que vem depois do 2:\n1 - 2 - ?\" → olhe para o n\xFAmero 3."
+  descRecall: "<b>TAREFA:</b> MEM\xD3RIA TARDIA\n\nVoc\xEA se lembra das imagens que viu no in\xEDcio do teste?\n\nCada rodada apresentar\xE1 4 op\xE7\xF5es — fixe o olhar na imagem\nque foi mostrada l\xE1 no come\xE7o.\n\n<b>Exemplo:</b> se voc\xEA memorizou um Le\xE3o, fixe no Le\xE3o quando\nele aparecer entre as op\xE7\xF5es.\n\nEsta tarefa tem 3 rodadas e vai mostrar, em sequ\xEAncia,\na primeira, segunda e terceira imagens do in\xEDcio."
   memoryEncodePrompt: "Memorize esta imagem"
   memoryRecallPrompt: "\n\nFixe o olhar na resposta correta."
   memoryTargetLabels:
